@@ -41,25 +41,92 @@ export const saveToContacts = async (card: BusinessCard): Promise<boolean> => {
       return false;
     }
     
+    // Process multiple phone numbers
+    const phoneNumbers = [];
+    if (card.phone) {
+      phoneNumbers.push({
+        label: 'mobile',
+        number: card.phone,
+      });
+    }
+    
+    // Extract additional phone numbers from notes
+    if (card.notes) {
+      const additionalPhones = card.notes.match(/Additional phones: (.*?)(?:\n|$)/);
+      if (additionalPhones && additionalPhones[1]) {
+        additionalPhones[1].split(',').forEach((phone, index) => {
+          phoneNumbers.push({
+            label: index === 0 ? 'work' : 'other',
+            number: phone.trim(),
+          });
+        });
+      }
+    }
+    
+    // Process multiple email addresses
+    const emailAddresses = [];
+    if (card.email) {
+      emailAddresses.push({
+        label: 'work',
+        email: card.email,
+      });
+    }
+    
+    // Extract additional emails from notes
+    if (card.notes) {
+      const additionalEmails = card.notes.match(/Additional emails: (.*?)(?:\n|$)/);
+      if (additionalEmails && additionalEmails[1]) {
+        additionalEmails[1].split(',').forEach((email, index) => {
+          emailAddresses.push({
+            label: index === 0 ? 'home' : 'other',
+            email: email.trim(),
+          });
+        });
+      }
+    }
+    
+    // Process multiple URLs
+    const urlAddresses = [];
+    if (card.website) {
+      urlAddresses.push({
+        label: 'work',
+        url: card.website,
+      });
+    }
+    
+    // Extract additional websites from notes
+    if (card.notes) {
+      const additionalWebsites = card.notes.match(/Additional websites: (.*?)(?:\n|$)/);
+      if (additionalWebsites && additionalWebsites[1]) {
+        additionalWebsites[1].split(',').forEach((website, index) => {
+          urlAddresses.push({
+            label: index === 0 ? 'home' : 'other',
+            url: website.trim(),
+          });
+        });
+      }
+    }
+    
+    // Clean notes (remove the additional fields sections)
+    let cleanNotes = card.notes || '';
+    if (cleanNotes) {
+      cleanNotes = cleanNotes
+        .replace(/Additional phones:.*?(?:\n|$)/g, '')
+        .replace(/Additional emails:.*?(?:\n|$)/g, '')
+        .replace(/Additional websites:.*?(?:\n|$)/g, '')
+        .trim();
+    }
+    
     // Create a new contact
     const newContact = {
       givenName: card.name.split(' ')[0] || '',
       familyName: card.name.split(' ').slice(1).join(' ') || '',
       company: card.company,
       jobTitle: card.title,
-      emailAddresses: card.email ? [{
-        label: 'work',
-        email: card.email,
-      }] : [],
-      phoneNumbers: card.phone ? [{
-        label: 'work',
-        number: card.phone,
-      }] : [],
-      urlAddresses: card.website ? [{
-        label: 'work',
-        url: card.website,
-      }] : [],
-      note: card.notes,
+      emailAddresses: emailAddresses,
+      phoneNumbers: phoneNumbers,
+      urlAddresses: urlAddresses,
+      note: cleanNotes,
     };
     
     await Contacts.addContact(newContact);

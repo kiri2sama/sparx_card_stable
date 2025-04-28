@@ -66,6 +66,20 @@ const NFCWriterScreen = () => {
     }));
   };
 
+  const handleAddField = (field: 'phone' | 'email' | 'website') => {
+    const currentValue = cardData[field];
+    const additionalField = cardData.notes || '';
+    const newValue = additionalField ? 
+      `${additionalField}\nAdditional ${field}s: ${currentValue}` :
+      `Additional ${field}s: ${currentValue}`;
+    
+    setCardData(prev => ({
+      ...prev,
+      [field]: '',
+      notes: newValue
+    }));
+  };
+
   const isFormValid = () => {
     // At minimum, we need a name
     return cardData.name.trim().length > 0;
@@ -178,39 +192,66 @@ const NFCWriterScreen = () => {
         
         <View style={styles.formGroup}>
           <Text style={styles.label}>Phone</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="+1 (555) 123-4567"
-            value={cardData.phone}
-            onChangeText={(text) => handleInputChange('phone', text)}
-            keyboardType="phone-pad"
-            editable={!isWriting}
-          />
+          <View style={styles.inputWithButton}>
+            <TextInput
+              style={[styles.input, styles.inputWithButtonInput]}
+              placeholder="+1 (555) 123-4567"
+              value={cardData.phone}
+              onChangeText={(text) => handleInputChange('phone', text)}
+              keyboardType="phone-pad"
+              editable={!isWriting}
+            />
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => handleAddField('phone')}
+              disabled={!cardData.phone || isWriting}
+            >
+              <Text style={styles.addButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         
         <View style={styles.formGroup}>
           <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="john.doe@example.com"
-            value={cardData.email}
-            onChangeText={(text) => handleInputChange('email', text)}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={!isWriting}
-          />
+          <View style={styles.inputWithButton}>
+            <TextInput
+              style={[styles.input, styles.inputWithButtonInput]}
+              placeholder="john.doe@example.com"
+              value={cardData.email}
+              onChangeText={(text) => handleInputChange('email', text)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={!isWriting}
+            />
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => handleAddField('email')}
+              disabled={!cardData.email || isWriting}
+            >
+              <Text style={styles.addButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         
         <View style={styles.formGroup}>
           <Text style={styles.label}>Website</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="www.example.com"
-            value={cardData.website}
-            onChangeText={(text) => handleInputChange('website', text)}
-            autoCapitalize="none"
-            editable={!isWriting}
-          />
+          <View style={styles.inputWithButton}>
+            <TextInput
+              style={[styles.input, styles.inputWithButtonInput]}
+              placeholder="www.example.com"
+              value={cardData.website}
+              onChangeText={(text) => handleInputChange('website', text)}
+              autoCapitalize="none"
+              editable={!isWriting}
+            />
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => handleAddField('website')}
+              disabled={!cardData.website || isWriting}
+            >
+              <Text style={styles.addButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         
         <View style={styles.formGroup}>
@@ -321,6 +362,27 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: '#666',
+  },
+  inputWithButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inputWithButtonInput: {
+    flex: 1,
+    marginRight: 10,
+  },
+  addButton: {
+    backgroundColor: '#0066cc',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
 

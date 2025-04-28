@@ -63,6 +63,9 @@
       ],
       "react-native-nfc-manager"
     ],
-    "newArchEnabled": true
+    "newArchEnabled": true,
+    "developmentClient": {
+      "silentLaunch": true
+    }
   }
 }

@@ -9,6 +9,7 @@ import NFCWriterScreen from './screens/NFCWriterScreen';
 import CardViewScreen from './screens/CardViewScreen';
 import SavedCardsScreen from './screens/SavedCardsScreen';
 import QRReaderScreen from './screens/QRReaderScreen';
+import ImportOptionsScreen from './screens/ImportOptionsScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -40,6 +41,11 @@ const HomeStack = () => {
         name="CardView" 
         component={CardViewScreen} 
         options={{ title: 'Business Card Details' }} 
+      />
+      <Stack.Screen 
+        name="ImportOptions" 
+        component={ImportOptionsScreen} 
+        options={{ title: 'Import Business Card' }} 
       />
     </Stack.Navigator>
   );

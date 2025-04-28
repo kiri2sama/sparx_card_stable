@@ -9,7 +9,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BusinessCard } from './HomeScreen';
 import { getSavedBusinessCards, deleteBusinessCard } from '../utils/storageUtils';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,10 +20,10 @@ type RootStackParamList = {
   CardView: { cardData: BusinessCard };
 };
 
-type SavedCardsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'SavedCards'>;
+type SavedCardsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'SavedCards'>;
 
 const SavedCardsScreen = () => {
-  const navigation = useNavigation<SavedCardsScreenNavigationProp>();
+  const navigation = useNavigation() as SavedCardsScreenNavigationProp;
   const [isLoading, setIsLoading] = useState(true);
   const [cards, setCards] = useState<BusinessCard[]>([]);
 

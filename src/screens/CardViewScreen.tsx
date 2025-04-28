@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -25,28 +25,57 @@ const CardViewScreen = () => {
   const route = useRoute();
   const { cardData } = route.params as CardViewParams;
   const [showQRCode, setShowQRCode] = useState(false);
+  const [additionalPhones, setAdditionalPhones] = useState<string[]>([]);
+  const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
+  const [additionalWebsites, setAdditionalWebsites] = useState<string[]>([]);
+  const [notes, setNotes] = useState('');
 
-  const handlePhonePress = () => {
-    if (cardData.phone) {
-      Linking.openURL(`tel:${cardData.phone}`);
-    }
-  };
-
-  const handleEmailPress = () => {
-    if (cardData.email) {
-      Linking.openURL(`mailto:${cardData.email}`);
-    }
-  };
-
-  const handleWebsitePress = () => {
-    if (cardData.website) {
-      // Add http:// if not already present
-      let url = cardData.website;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = `https://${url}`;
+  // Extract additional information from notes
+  useEffect(() => {
+    if (cardData.notes) {
+      let tempNotes = cardData.notes;
+      
+      // Extract phone numbers
+      const phonesMatch = tempNotes.match(/Additional phones: (.*?)(?:\n|$)/);
+      if (phonesMatch && phonesMatch[1]) {
+        setAdditionalPhones(phonesMatch[1].split(',').map(p => p.trim()));
+        tempNotes = tempNotes.replace(/Additional phones:.*?(?:\n|$)/g, '');
       }
-      Linking.openURL(url);
+      
+      // Extract emails
+      const emailsMatch = tempNotes.match(/Additional emails: (.*?)(?:\n|$)/);
+      if (emailsMatch && emailsMatch[1]) {
+        setAdditionalEmails(emailsMatch[1].split(',').map(e => e.trim()));
+        tempNotes = tempNotes.replace(/Additional emails:.*?(?:\n|$)/g, '');
+      }
+      
+      // Extract websites
+      const websitesMatch = tempNotes.match(/Additional websites: (.*?)(?:\n|$)/);
+      if (websitesMatch && websitesMatch[1]) {
+        setAdditionalWebsites(websitesMatch[1].split(',').map(w => w.trim()));
+        tempNotes = tempNotes.replace(/Additional websites:.*?(?:\n|$)/g, '');
+      }
+      
+      // Set cleaned notes
+      setNotes(tempNotes.trim());
     }
+  }, [cardData.notes]);
+
+  const handlePhonePress = (phone: string) => {
+    Linking.openURL(`tel:${phone}`);
+  };
+
+  const handleEmailPress = (email: string) => {
+    Linking.openURL(`mailto:${email}`);
+  };
+
+  const handleWebsitePress = (website: string) => {
+    // Add http:// if not already present
+    let url = website;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
+    Linking.openURL(url);
   };
 
   const handleSaveCard = async () => {
@@ -109,7 +138,7 @@ const CardViewScreen = () => {
           <View style={styles.divider} />
           
           {cardData.phone ? (
-            <TouchableOpacity style={styles.infoRow} onPress={handlePhonePress}>
+            <TouchableOpacity style={styles.infoRow} onPress={() => handlePhonePress(cardData.phone)}>
               <Ionicons name="call-outline" size={22} color="#0066cc" style={styles.icon} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Phone</Text>
@@ -118,8 +147,22 @@ const CardViewScreen = () => {
             </TouchableOpacity>
           ) : null}
           
+          {additionalPhones.map((phone, index) => (
+            <TouchableOpacity 
+              key={`phone-${index}`} 
+              style={styles.infoRow} 
+              onPress={() => handlePhonePress(phone)}
+            >
+              <Ionicons name="call-outline" size={22} color="#0066cc" style={styles.icon} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Phone {index + 2}</Text>
+                <Text style={styles.infoValue}>{phone}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+          
           {cardData.email ? (
-            <TouchableOpacity style={styles.infoRow} onPress={handleEmailPress}>
+            <TouchableOpacity style={styles.infoRow} onPress={() => handleEmailPress(cardData.email)}>
               <Ionicons name="mail-outline" size={22} color="#0066cc" style={styles.icon} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Email</Text>
@@ -128,8 +171,22 @@ const CardViewScreen = () => {
             </TouchableOpacity>
           ) : null}
           
+          {additionalEmails.map((email, index) => (
+            <TouchableOpacity 
+              key={`email-${index}`} 
+              style={styles.infoRow} 
+              onPress={() => handleEmailPress(email)}
+            >
+              <Ionicons name="mail-outline" size={22} color="#0066cc" style={styles.icon} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Email {index + 2}</Text>
+                <Text style={styles.infoValue}>{email}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+          
           {cardData.website ? (
-            <TouchableOpacity style={styles.infoRow} onPress={handleWebsitePress}>
+            <TouchableOpacity style={styles.infoRow} onPress={() => handleWebsitePress(cardData.website)}>
               <Ionicons name="globe-outline" size={22} color="#0066cc" style={styles.icon} />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Website</Text>
@@ -138,10 +195,24 @@ const CardViewScreen = () => {
             </TouchableOpacity>
           ) : null}
           
-          {cardData.notes ? (
+          {additionalWebsites.map((website, index) => (
+            <TouchableOpacity 
+              key={`website-${index}`} 
+              style={styles.infoRow} 
+              onPress={() => handleWebsitePress(website)}
+            >
+              <Ionicons name="globe-outline" size={22} color="#0066cc" style={styles.icon} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Website {index + 2}</Text>
+                <Text style={styles.infoValue}>{website}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+          
+          {notes ? (
             <View style={styles.notesContainer}>
               <Text style={styles.notesLabel}>Notes</Text>
-              <Text style={styles.notes}>{cardData.notes}</Text>
+              <Text style={styles.notes}>{notes}</Text>
             </View>
           ) : null}
         </View>

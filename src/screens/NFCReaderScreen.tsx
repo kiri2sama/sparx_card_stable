@@ -1,13 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform, PermissionsAndroid } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BusinessCard } from './HomeScreen';
 import { initNfc, readNfcTag, cleanupNfc } from '../utils/nfcUtils';
 
+type RootStackParamList = {
+  Home: undefined;
+  NFCReader: undefined;
+  ImportOptions: { cardData: BusinessCard };
+};
+
+type NFCReaderScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'NFCReader'>;
+
 const NFCReaderScreen = () => {
-  const navigation = useNavigation();
-  const [isScanning, setIsScanning] = useState(false);
+  const navigation = useNavigation() as NFCReaderScreenNavigationProp;
+  const [isReading, setIsReading] = useState(false);
   const [nfcSupported, setNfcSupported] = useState<boolean | null>(null);
+  const [cardData, setCardData] = useState<BusinessCard | null>(null);
+
+  // Request required permissions
+  const requestPermissions = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const permissions = [
+          PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+          PermissionsAndroid.PERMISSIONS.WRITE_CONTACTS,
+          PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
+          PermissionsAndroid.PERMISSIONS.CALL_PHONE
+        ];
+
+        const results = await PermissionsAndroid.requestMultiple(permissions);
+        
+        const allGranted = Object.values(results).every(
+          result => result === PermissionsAndroid.RESULTS.GRANTED
+        );
+
+        if (!allGranted) {
+          Alert.alert(
+            'Permissions Required',
+            'This app needs contacts and phone permissions to save business cards.',
+            [{ text: 'OK' }]
+          );
+        }
+      } catch (err) {
+        console.warn('Error requesting permissions:', err);
+      }
+    }
+  };
 
   // Check if NFC is supported on this device
   useEffect(() => {
@@ -21,6 +61,9 @@ const NFCReaderScreen = () => {
           'This device does not support NFC or NFC is not enabled.',
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
+      } else {
+        // Request permissions when NFC is supported
+        await requestPermissions();
       }
     };
     
@@ -31,33 +74,29 @@ const NFCReaderScreen = () => {
     };
   }, [navigation]);
 
-  const startScan = async () => {
-    if (!nfcSupported) return;
-    
-    setIsScanning(true);
-    
+  const handleNfcRead = async () => {
+    setIsReading(true);
     try {
       const cardData = await readNfcTag();
-      
       if (cardData) {
-        // Navigate to card view with the data
-        navigation.navigate('CardView' as never, { cardData } as never);
+        // Navigate to import options screen
+        navigation.navigate('ImportOptions', { cardData });
       } else {
         Alert.alert(
-          'Read Failed',
-          'Could not read business card data from the tag.',
+          'No Data',
+          'No business card data found on the NFC tag.',
           [{ text: 'OK' }]
         );
       }
     } catch (error) {
-      console.error('Error scanning NFC tag', error);
+      console.error('Error reading NFC tag:', error);
       Alert.alert(
-        'Scan Error',
-        'There was an error reading the NFC tag.',
+        'Error',
+        'Failed to read the NFC tag.',
         [{ text: 'OK' }]
       );
     } finally {
-      setIsScanning(false);
+      setIsReading(false);
     }
   };
 
@@ -85,7 +124,7 @@ const NFCReaderScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>NFC Card Reader</Text>
       
-      {isScanning ? (
+      {isReading ? (
         <>
           <ActivityIndicator size="large" color="#0066cc" style={styles.indicator} />
           <Text style={styles.scanText}>
@@ -93,7 +132,7 @@ const NFCReaderScreen = () => {
           </Text>
           <TouchableOpacity style={styles.cancelButton} onPress={() => {
             cleanupNfc();
-            setIsScanning(false);
+            setIsReading(false);
           }}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
@@ -103,7 +142,7 @@ const NFCReaderScreen = () => {
           <Text style={styles.instructions}>
             Tap the button below to start scanning for an NFC business card
           </Text>
-          <TouchableOpacity style={styles.button} onPress={startScan}>
+          <TouchableOpacity style={styles.button} onPress={handleNfcRead}>
             <Text style={styles.buttonText}>Start Scanning</Text>
           </TouchableOpacity>
         </>

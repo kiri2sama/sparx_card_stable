@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { BusinessCard } from './HomeScreen';
@@ -13,6 +13,7 @@ const QRReaderScreen = () => {
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -21,21 +22,42 @@ const QRReaderScreen = () => {
     })();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }: ScanResult) => {
-    if (scanned) return;
+  const handleBarCodeScanned = async ({ type, data }: ScanResult) => {
+    if (scanned || isProcessing) return;
     
     setScanned(true);
+    setIsProcessing(true);
     
     try {
+      // Clean and validate the data
+      const cleanData = data.trim();
+      if (!cleanData) {
+        throw new Error('Empty QR code data');
+      }
+
       // Parse the QR code data
-      const cardData: BusinessCard = JSON.parse(data);
+      const parsed = JSON.parse(cleanData);
+      
+      // Validate and sanitize the data
+      const cardData: BusinessCard = {
+        name: String(parsed.name || '').trim(),
+        title: String(parsed.title || '').trim(),
+        company: String(parsed.company || '').trim(),
+        phone: String(parsed.phone || '').trim(),
+        email: String(parsed.email || '').trim(),
+        website: String(parsed.website || '').trim(),
+        notes: String(parsed.notes || '').trim()
+      };
       
       // Check if the parsed data has the required fields
       if (!cardData.name) {
         Alert.alert(
           'Invalid QR Code',
           'This QR code does not contain valid business card data.',
-          [{ text: 'OK', onPress: () => setScanned(false) }]
+          [{ text: 'OK', onPress: () => {
+            setScanned(false);
+            setIsProcessing(false);
+          }}]
         );
         return;
       }
@@ -47,17 +69,34 @@ const QRReaderScreen = () => {
       Alert.alert(
         'Invalid Format',
         'The scanned QR code is not in the correct format.',
-        [{ text: 'OK', onPress: () => setScanned(false) }]
+        [{ text: 'OK', onPress: () => {
+          setScanned(false);
+          setIsProcessing(false);
+        }}]
       );
     }
   };
 
   if (hasPermission === null) {
-    return <View style={styles.container}><Text>Requesting camera permission...</Text></View>;
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Requesting camera permission...</Text>
+      </View>
+    );
   }
   
   if (hasPermission === false) {
-    return <View style={styles.container}><Text>No access to camera</Text></View>;
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>No access to camera</Text>
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.buttonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   return (
@@ -74,6 +113,12 @@ const QRReaderScreen = () => {
       
       <View style={styles.overlay}>
         <View style={styles.scanArea}></View>
+        {isProcessing && (
+          <View style={styles.processingOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={styles.processingText}>Processing...</Text>
+          </View>
+        )}
       </View>
       
       <View style={styles.buttonContainer}>
@@ -84,7 +129,10 @@ const QRReaderScreen = () => {
         {scanned && (
           <TouchableOpacity 
             style={styles.button}
-            onPress={() => setScanned(false)}
+            onPress={() => {
+              setScanned(false);
+              setIsProcessing(false);
+            }}
           >
             <Text style={styles.buttonText}>Scan Again</Text>
           </TouchableOpacity>
@@ -159,6 +207,23 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  text: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  processingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  processingText: {
+    color: 'white',
+    fontSize: 16,
+    marginTop: 10,
   },
 });
 
