@@ -12,7 +12,7 @@ import {
   Platform
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BusinessCard } from './HomeScreen';
 import { initNfc, writeNfcTag, cleanupNfc } from '../utils/nfcUtils';
 
@@ -21,10 +21,10 @@ type RootStackParamList = {
   NFCWriter: undefined;
 };
 
-type NFCWriterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'NFCWriter'>;
+type NFCWriterScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'NFCWriter'>;
 
 const NFCWriterScreen = () => {
-  const navigation = useNavigation<NFCWriterScreenNavigationProp>();
+  const navigation = useNavigation() as NFCWriterScreenNavigationProp;
   const [isWriting, setIsWriting] = useState(false);
   const [nfcSupported, setNfcSupported] = useState<boolean | null>(null);
   const [cardData, setCardData] = useState<BusinessCard>({
