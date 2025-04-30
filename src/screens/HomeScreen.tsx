@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Contacts from 'expo-contacts';
+import { Alert } from 'react-native';
 
 export type BusinessCard = {
   name: string;
@@ -11,48 +13,107 @@ export type BusinessCard = {
   email: string;
   website: string;
   notes: string;
+  additionalPhones?: string[];
+  additionalEmails?: string[];
+  additionalWebsites?: string[];
 };
 
 const HomeScreen = () => {
   const navigation = useNavigation();
 
+  const handleImportContact = async () => {
+    const { status } = await Contacts.requestPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Required',
+        'Please grant contacts permission to import contacts.'
+      );
+      return;
+    }
+
+    // Open contact picker
+    try {
+      const contact = await Contacts.presentContactPickerAsync();
+      
+      if (!contact) {
+        // User canceled
+        return;
+      }
+      
+      // Create a BusinessCard from the selected contact
+      const businessCard: BusinessCard = {
+        name: contact.name || '',
+        title: contact.jobTitle || '',
+        company: contact.company || '',
+        phone: contact.phoneNumbers && contact.phoneNumbers.length > 0 
+          ? contact.phoneNumbers[0].number 
+          : '',
+        email: contact.emails && contact.emails.length > 0 
+          ? contact.emails[0].email 
+          : '',
+        website: contact.urlAddresses && contact.urlAddresses.length > 0 
+          ? contact.urlAddresses[0].url 
+          : '',
+        notes: contact.note || '',
+        additionalPhones: contact.phoneNumbers && contact.phoneNumbers.length > 1
+          ? contact.phoneNumbers.slice(1).map(p => p.number)
+          : [],
+        additionalEmails: contact.emails && contact.emails.length > 1
+          ? contact.emails.slice(1).map(e => e.email)
+          : [],
+        additionalWebsites: contact.urlAddresses && contact.urlAddresses.length > 1
+          ? contact.urlAddresses.slice(1).map(u => u.url)
+          : []
+      };
+
+      // Navigate to the NFCWriter screen with the imported contact
+      navigation.navigate('NFCWriter' as never, { 
+        editMode: true, 
+        businessCard
+      } as never);
+    } catch (error) {
+      console.error('Error importing contact:', error);
+      Alert.alert('Error', 'Failed to import contact');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Digital Business Card</Text>
-      <Text style={styles.subtitle}>Create, share and collect business cards</Text>
+      <Text style={styles.title}>NFC Business Card</Text>
+      <Text style={styles.subtitle}>Save and share business cards with NFC</Text>
       
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={() => navigation.navigate('NFCReader' as never)}
-        >
-          <Ionicons name="wifi-outline" size={28} color="white" style={styles.buttonIcon} />
-          <View style={styles.buttonTextContainer}>
-            <Text style={styles.buttonText}>Read NFC Card</Text>
-            <Text style={styles.buttonSubtext}>Scan an NFC business card</Text>
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={() => navigation.navigate('QRReader' as never)}
-        >
-          <Ionicons name="qr-code-outline" size={28} color="white" style={styles.buttonIcon} />
-          <View style={styles.buttonTextContainer}>
-            <Text style={styles.buttonText}>Scan QR Code</Text>
-            <Text style={styles.buttonSubtext}>Read a business card QR code</Text>
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.button} 
+      <View style={styles.buttonGroup}>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => navigation.navigate('NFCWriter' as never)}
         >
-          <Ionicons name="create-outline" size={28} color="white" style={styles.buttonIcon} />
-          <View style={styles.buttonTextContainer}>
-            <Text style={styles.buttonText}>Create NFC Card</Text>
-            <Text style={styles.buttonSubtext}>Write your info to an NFC tag</Text>
-          </View>
+          <Ionicons name="create-outline" size={24} color="white" />
+          <Text style={styles.buttonText}>Create New Card</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('NFCReader' as never)}
+        >
+          <Ionicons name="scan-outline" size={24} color="white" />
+          <Text style={styles.buttonText}>Scan NFC Card</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleImportContact}
+        >
+          <Ionicons name="person-add-outline" size={24} color="white" />
+          <Text style={styles.buttonText}>Import Contact</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('SavedCards' as never)}
+        >
+          <Ionicons name="bookmark-outline" size={24} color="white" />
+          <Text style={styles.buttonText}>Saved Cards</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -81,7 +142,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
   },
-  buttonContainer: {
+  buttonGroup: {
     width: '100%',
     maxWidth: 350,
   },

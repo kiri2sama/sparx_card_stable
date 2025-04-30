@@ -1,5 +1,8 @@
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import { BusinessCard } from '../screens/HomeScreen';
+import { Alert } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+//import * as DocumentPicker from 'expo-document-picker';
 
 // Initialize NFC Manager
 export const initNfc = async (): Promise<boolean> => {
@@ -29,9 +32,41 @@ export const businessCardToPayload = (card: BusinessCard): string => {
     phone: String(card.phone || '').trim(),
     email: String(card.email || '').trim(),
     website: String(card.website || '').trim(),
-    notes: String(card.notes || '').trim()
+    notes: String(card.notes || '').trim(),
+    additionalPhones: card.additionalPhones || [],
+    additionalEmails: card.additionalEmails || [],
+    additionalWebsites: card.additionalWebsites || []
   };
   return JSON.stringify(sanitizedCard);
+};
+
+// Save business card as JSON file
+export const saveRecordAsJson = async (card: BusinessCard): Promise<string | null> => {
+  try {
+    const json = businessCardToPayload(card);
+    const fileName = (card.name ? card.name.replace(/\s+/g, '_') : 'contact') + '.json';
+    const fileUri = FileSystem.documentDirectory + fileName;
+    await FileSystem.writeAsStringAsync(fileUri, json, { encoding: FileSystem.EncodingType.UTF8 });
+    return fileUri;
+  } catch (error) {
+    console.error('Failed to save record as JSON:', error);
+    return null;
+  }
+};
+
+// Load business card from JSON file
+export const loadRecordFromJson = async (): Promise<BusinessCard | null> => {
+  try {
+    const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
+    if (!result.canceled && result.assets && result.assets[0]?.uri) {
+      const json = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: FileSystem.EncodingType.UTF8 });
+      return payloadToBusinessCard(json);
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to load record from JSON:', error);
+    return null;
+  }
 };
 
 // Parse vCard format to BusinessCard
@@ -45,7 +80,10 @@ const parseVCard = (vcardText: string): BusinessCard | null => {
       phone: '',
       email: '',
       website: '',
-      notes: ''
+      notes: '',
+      additionalPhones: [],
+      additionalEmails: [],
+      additionalWebsites: []
     };
 
     let phones: string[] = [];
@@ -57,12 +95,41 @@ const parseVCard = (vcardText: string): BusinessCard | null => {
       const trimmedLine = line.trim();
       
       if (trimmedLine.startsWith('FN:')) {
-        // Handle Arabic text in name
-        card.name = decodeURIComponent(trimmedLine.substring(3).trim());
+        // Handle text, including Arabic text in name
+        try {
+          const nameValue = trimmedLine.substring(3).trim();
+          // Try to decode URI encoded text (common for Arabic)
+          if (nameValue.includes('%')) {
+            card.name = decodeURIComponent(nameValue);
+          } else {
+            card.name = nameValue;
+          }
+        } catch (e) {
+          // If decoding fails, use the raw value
+          card.name = trimmedLine.substring(3).trim();
+        }
       } else if (trimmedLine.startsWith('TITLE:')) {
-        card.title = decodeURIComponent(trimmedLine.substring(6).trim());
+        try {
+          const titleValue = trimmedLine.substring(6).trim();
+          if (titleValue.includes('%')) {
+            card.title = decodeURIComponent(titleValue);
+          } else {
+            card.title = titleValue;
+          }
+        } catch (e) {
+          card.title = trimmedLine.substring(6).trim();
+        }
       } else if (trimmedLine.startsWith('ORG:')) {
-        card.company = decodeURIComponent(trimmedLine.substring(4).trim());
+        try {
+          const companyValue = trimmedLine.substring(4).trim();
+          if (companyValue.includes('%')) {
+            card.company = decodeURIComponent(companyValue);
+          } else {
+            card.company = companyValue;
+          }
+        } catch (e) {
+          card.company = trimmedLine.substring(4).trim();
+        }
       } else if (trimmedLine.startsWith('TEL;')) {
         const phone = trimmedLine.split(':')[1]?.trim();
         if (phone) phones.push(phone);
@@ -73,33 +140,47 @@ const parseVCard = (vcardText: string): BusinessCard | null => {
         const url = trimmedLine.substring(4).trim();
         if (url) websites.push(url);
       } else if (trimmedLine.startsWith('NOTE:')) {
-        const note = decodeURIComponent(trimmedLine.substring(5).trim());
-        if (note) notes.push(note);
+        try {
+          const noteValue = trimmedLine.substring(5).trim();
+          if (noteValue.includes('%')) {
+            notes.push(decodeURIComponent(noteValue));
+          } else {
+            notes.push(noteValue);
+          }
+        } catch (e) {
+          notes.push(trimmedLine.substring(5).trim());
+        }
       }
     }
 
     // Set primary values
-    if (phones.length > 0) card.phone = phones[0];
-    if (emails.length > 0) card.email = emails[0];
-    if (websites.length > 0) card.website = websites[0];
+    if (phones.length > 0) {
+      card.phone = phones[0];
+      // Add additional phone numbers if any
+      if (phones.length > 1) {
+        card.additionalPhones = phones.slice(1);
+      }
+    }
+    
+    if (emails.length > 0) {
+      card.email = emails[0];
+      // Add additional emails if any
+      if (emails.length > 1) {
+        card.additionalEmails = emails.slice(1);
+      }
+    }
+    
+    if (websites.length > 0) {
+      card.website = websites[0];
+      // Add additional websites if any
+      if (websites.length > 1) {
+        card.additionalWebsites = websites.slice(1);
+      }
+    }
 
-    // Store additional values in notes with proper formatting
-    const additionalInfo: string[] = [];
-    if (phones.length > 1) {
-      additionalInfo.push(`Additional phones: ${phones.slice(1).join(', ')}`);
-    }
-    if (emails.length > 1) {
-      additionalInfo.push(`Additional emails: ${emails.slice(1).join(', ')}`);
-    }
-    if (websites.length > 1) {
-      additionalInfo.push(`Additional websites: ${websites.slice(1).join(', ')}`);
-    }
+    // Join all notes
     if (notes.length > 0) {
-      additionalInfo.push(...notes);
-    }
-
-    if (additionalInfo.length > 0) {
-      card.notes = additionalInfo.join('\n');
+      card.notes = notes.join('\n');
     }
 
     return card.name ? card : null;
@@ -155,7 +236,10 @@ export const payloadToBusinessCard = (payload: string): BusinessCard | null => {
         phone: String(parsed.phone || '').trim(),
         email: String(parsed.email || '').trim(),
         website: String(parsed.website || '').trim(),
-        notes: String(parsed.notes || '').trim()
+        notes: String(parsed.notes || '').trim(),
+        additionalPhones: parsed.additionalPhones || [],
+        additionalEmails: parsed.additionalEmails || [],
+        additionalWebsites: parsed.additionalWebsites || []
       };
       
       console.log('Sanitized card:', sanitizedCard);
@@ -192,23 +276,51 @@ export const readNfcTag = async (): Promise<BusinessCard | null> => {
       return null;
     }
 
-    // NDEF message is an array of records, we expect our card to be in the first record
-    const record = tag.ndefMessage[0];
-    console.log('NDEF record:', record);
+    console.log('NFC Tag detected:', tag);
     
-    // Check if this is a text/vcard record
-    const recordType = new TextDecoder().decode(new Uint8Array(record.type));
-    console.log('Record type:', recordType);
-    
-    if (recordType === 'text/vcard') {
-      // For text/vcard records, we can use the payload directly
-      const text = new TextDecoder('utf-8').decode(new Uint8Array(record.payload));
-      console.log('Decoded vCard text:', text);
-      return payloadToBusinessCard(text);
-    } else {
-      console.log('Unsupported record type:', recordType);
-      return null;
+    // Process all records to find vCard data
+    for (const record of tag.ndefMessage) {
+      console.log('Record type:', record.type);
+      console.log('Record payload:', record.payload);
+      
+      // Check record type - could be MIME media record or text record
+      if (record.tnf === Ndef.TNF_MIME_MEDIA) {
+        // For MIME media records (e.g., text/vcard)
+        const mimeType = String.fromCharCode.apply(null, record.type);
+        console.log('MIME type:', mimeType);
+        
+        if (mimeType === 'text/vcard' || mimeType === 'text/x-vcard') {
+          const payload = String.fromCharCode.apply(null, record.payload);
+          console.log('Decoded vCard text:', payload);
+          return payloadToBusinessCard(payload);
+        }
+      } 
+      else if (record.tnf === Ndef.TNF_WELL_KNOWN && 
+               String.fromCharCode.apply(null, record.type) === 'T') {
+        // For text records - they start with a status byte followed by language code
+        // Skip the language code and status byte to get the actual text
+        let payload = "";
+        
+        // Skip first byte (status byte) and the language code length indicated by it
+        // The status byte format: [encoding flag:1 bit][language code length:7 bits]
+        const statusByte = record.payload[0];
+        const langLength = statusByte & 0x3F; // 0x3F is binary 00111111 - to get the last 6 bits
+        
+        // Convert the rest to a string, skipping status byte and language code
+        payload = String.fromCharCode.apply(null, record.payload.slice(1 + langLength));
+        console.log('Text payload:', payload);
+        
+        // Check if it contains vCard data
+        if (payload.includes('BEGIN:VCARD') || 
+            payload.includes('VCARD_PART') || 
+            payload.includes('FN:')) {
+          return payloadToBusinessCard(payload);
+        }
+      }
     }
+    
+    console.log('No vCard data found on tag');
+    return null;
   } catch (error) {
     console.warn('Error reading NFC', error);
     console.error('Error details:', {
@@ -221,84 +333,82 @@ export const readNfcTag = async (): Promise<BusinessCard | null> => {
   }
 };
 
-// Convert a BusinessCard object to a vCard string
+// IMPORTANT: Do NOT modify the businessCardToVCard function below.
+// This function is required for correct display of Arabic contact names in vCard format.
+
 const businessCardToVCard = (card: BusinessCard): string => {
   const lines: string[] = [
     'BEGIN:VCARD',
     'VERSION:3.0'
   ];
 
-  // Add name
+  // Add name - do NOT encode, just add CHARSET=UTF-8
   if (card.name) {
-    lines.push(`FN:${encodeURIComponent(card.name)}`);
+    lines.push(`FN;CHARSET=UTF-8:${card.name}`);
+    // vCard N field: N;CHARSET=UTF-8:Family;Given
+    const nameParts = card.name.split(' ');
+    if (nameParts.length > 1) {
+      lines.push(`N;CHARSET=UTF-8:${nameParts[1]};${nameParts[0]}`);
+    } else {
+      lines.push(`N;CHARSET=UTF-8:;${card.name}`);
+    }
   }
 
   // Add title
   if (card.title) {
-    lines.push(`TITLE:${encodeURIComponent(card.title)}`);
+    lines.push(`TITLE;CHARSET=UTF-8:${card.title}`);
   }
 
   // Add company
   if (card.company) {
-    lines.push(`ORG:${encodeURIComponent(card.company)}`);
+    lines.push(`ORG;CHARSET=UTF-8:${card.company}`);
   }
 
-  // Add phone numbers
+  // Add primary phone number
   if (card.phone) {
     lines.push(`TEL;TYPE=CELL,VOICE:${card.phone}`);
   }
 
-  // Add additional phones from notes
-  if (card.notes) {
-    const additionalPhones = card.notes.match(/Additional phones: (.*?)(?:\n|$)/);
-    if (additionalPhones && additionalPhones[1]) {
-      additionalPhones[1].split(',').forEach(phone => {
+  // Add additional phone numbers
+  if (card.additionalPhones && card.additionalPhones.length > 0) {
+    card.additionalPhones.forEach(phone => {
+      if (phone.trim()) {
         lines.push(`TEL;TYPE=CELL,VOICE:${phone.trim()}`);
-      });
-    }
+      }
+    });
   }
 
-  // Add email
+  // Add primary email
   if (card.email) {
     lines.push(`EMAIL:${card.email}`);
   }
 
-  // Add additional emails from notes
-  if (card.notes) {
-    const additionalEmails = card.notes.match(/Additional emails: (.*?)(?:\n|$)/);
-    if (additionalEmails && additionalEmails[1]) {
-      additionalEmails[1].split(',').forEach(email => {
+  // Add additional emails
+  if (card.additionalEmails && card.additionalEmails.length > 0) {
+    card.additionalEmails.forEach(email => {
+      if (email.trim()) {
         lines.push(`EMAIL:${email.trim()}`);
-      });
-    }
+      }
+    });
   }
 
-  // Add website
+  // Add primary website
   if (card.website) {
     lines.push(`URL:${card.website}`);
   }
 
-  // Add additional websites from notes
-  if (card.notes) {
-    const additionalWebsites = card.notes.match(/Additional websites: (.*?)(?:\n|$)/);
-    if (additionalWebsites && additionalWebsites[1]) {
-      additionalWebsites[1].split(',').forEach(website => {
+  // Add additional websites
+  if (card.additionalWebsites && card.additionalWebsites.length > 0) {
+    card.additionalWebsites.forEach(website => {
+      if (website.trim()) {
         lines.push(`URL:${website.trim()}`);
-      });
-    }
+      }
+    });
   }
 
-  // Add notes (excluding the additional fields we already processed)
-  if (card.notes) {
-    const cleanNotes = card.notes
-      .replace(/Additional phones:.*?(?:\n|$)/g, '')
-      .replace(/Additional emails:.*?(?:\n|$)/g, '')
-      .replace(/Additional websites:.*?(?:\n|$)/g, '')
-      .trim();
-    
-    if (cleanNotes) {
-      lines.push(`NOTE:${encodeURIComponent(cleanNotes)}`);
-    }
+  // Add notes
+  if (card.notes && card.notes.trim()) {
+    lines.push(`NOTE;CHARSET=UTF-8:${card.notes.trim()}`);
   }
 
   lines.push('END:VCARD');
@@ -314,38 +424,148 @@ export const writeNfcTag = async (card: BusinessCard): Promise<boolean> => {
       return false;
     }
 
-    // Request NFC technology
-    await NfcManager.requestTechnology(NfcTech.Ndef);
-    
     // Create the vCard message
-    const vcard = businessCardToVCard(card);
+    let vcard = businessCardToVCard(card);
     console.log('Writing vCard:', vcard);
     
-    // Validate vCard
-    if (!vcard || vcard.length === 0) {
-      console.error('Invalid vCard generated');
-      return false;
+    // Check the vCard size
+    const vcardSize = new TextEncoder().encode(vcard).length;
+    console.log('vCard size in bytes:', vcardSize);
+    
+    // If the card contains non-Latin characters and is causing issues, 
+    // try creating a simplified version with Latin characters only
+    if (containsNonLatinChars(card.name) && vcardSize > 300) {
+      console.log('Card contains non-Latin characters and might be too large, creating simplified version');
+      // Create a simplified version of the card with Latin-only characters
+      const simplifiedCard = { ...card };
+      simplifiedCard.name = simplifyText(card.name);
+      vcard = businessCardToVCard(simplifiedCard);
+      console.log('Using simplified vCard:', vcard);
     }
 
-    // Create NDEF message with text/vcard type
-    const bytes = Ndef.encodeMessage([
-      Ndef.record(
-        Ndef.TNF_MIME_MEDIA,
-        'text/vcard',
-        [],
-        new TextEncoder().encode(vcard)
-      )
-    ]);
+    // First, create the NDEF message - we'll try to use this with different tag types
+    const mimeType = 'text/vcard';
+    const mimeBytes = Array.from(mimeType).map(char => char.charCodeAt(0));
+    // FIX: Use UTF-8 encoding for vCard data
+    const dataBytes = Array.from(new TextEncoder().encode(vcard));
     
-    if (!bytes) {
+    const record = Ndef.record(
+      Ndef.TNF_MIME_MEDIA,
+      mimeBytes,
+      [],
+      dataBytes
+    );
+    
+    // Encode as NDEF message
+    const ndefMessage = Ndef.encodeMessage([record]);
+    if (!ndefMessage) {
       console.error('Failed to encode NDEF message');
       return false;
     }
 
-    // Write to tag
-    await NfcManager.ndefHandler.writeNdefMessage(bytes);
-    console.log('Successfully wrote to NFC tag');
-    return true;
+    // Request NFC technology
+    await NfcManager.requestTechnology(NfcTech.Ndef);
+    
+    // Get tag info to check compatibility and capacity
+    const tag = await NfcManager.getTag();
+    console.log('Tag info:', tag);
+    
+    // Track if we're dealing with a special tag type
+    const tagTechTypes = tag?.techTypes || [];
+    const tagType = getTagType(tagTechTypes);
+    console.log('Detected tag type:', tagType);
+    
+    // Check size constraints if available
+    if (tag && tag.maxSize && vcardSize > tag.maxSize) {
+      console.error(`vCard size (${vcardSize} bytes) exceeds tag capacity (${tag.maxSize} bytes)`);
+      Alert.alert(
+        'NFC Tag Too Small',
+        `The contact information is too large (${vcardSize} bytes) for this NFC tag (${tag.maxSize} bytes). Try removing some information or use a larger capacity tag.`
+      );
+      return false;
+    }
+    
+    // Handle different tag types with a series of attempts
+    let success = false;
+    
+    // Try standard NDEF first, which works for most NDEF-formatted tags
+    if (tagType.isNdef) {
+      try {
+        // Try to write using NDEF
+        console.log('Trying standard NDEF write...');
+        await NfcManager.ndefHandler.writeNdefMessage(ndefMessage);
+        console.log('Successfully wrote using standard NDEF');
+        success = true;
+      } catch (error) {
+        console.error('Standard NDEF write failed:', error);
+      }
+    }
+    
+    // If standard NDEF failed and tag is formattable, try formatting
+    if (!success && tagType.isFormattable) {
+      try {
+        // Cancel current tech and request NdefFormatable
+        await NfcManager.cancelTechnologyRequest();
+        await NfcManager.requestTechnology(NfcTech.NdefFormatable);
+        
+        console.log('Trying to format tag and write in one go...');
+        await NfcManager.ndefHandler.formatNdef(ndefMessage);
+        console.log('Successfully formatted tag and wrote data');
+        success = true;
+      } catch (error) {
+        console.error('Format and write failed:', error);
+      }
+    }
+    
+    // If both attempts failed, try as plain text record
+    if (!success) {
+      try {
+        // Start fresh
+        await NfcManager.cancelTechnologyRequest();
+        await NfcManager.requestTechnology(NfcTech.Ndef);
+        
+        // Create a simple text record instead
+        console.log('Trying to write as text record...');
+        const textRecord = Ndef.textRecord(vcard);
+        const textMessage = Ndef.encodeMessage([textRecord]);
+        
+        await NfcManager.ndefHandler.writeNdefMessage(textMessage);
+        console.log('Successfully wrote as text record');
+        success = true;
+      } catch (error) {
+        console.error('Text record write failed:', error);
+      }
+    }
+    
+    // Final fallback - try with minimalist data
+    if (!success) {
+      try {
+        // Try one last time with minimal data
+        await NfcManager.cancelTechnologyRequest();
+        await NfcManager.requestTechnology(NfcTech.Ndef);
+        
+        // Create a minimal vCard with just name and first phone
+        const minimalVcard = [
+          'BEGIN:VCARD',
+          'VERSION:3.0',
+          `FN:${card.name}`,
+          card.phone ? `TEL:${card.phone}` : '',
+          'END:VCARD'
+        ].filter(Boolean).join('\n');
+        
+        console.log('Trying with minimal vCard data:', minimalVcard);
+        const minimalRecord = Ndef.textRecord(minimalVcard);
+        const minimalMessage = Ndef.encodeMessage([minimalRecord]);
+        
+        await NfcManager.ndefHandler.writeNdefMessage(minimalMessage);
+        console.log('Successfully wrote minimal data');
+        success = true;
+      } catch (error) {
+        console.error('All write attempts failed:', error);
+      }
+    }
+    
+    return success;
   } catch (error) {
     console.error('Error writing to NFC tag:', error);
     console.error('Error details:', {
@@ -356,4 +576,51 @@ export const writeNfcTag = async (card: BusinessCard): Promise<boolean> => {
   } finally {
     cleanupNfc();
   }
-}; 
+};
+
+// Helper to determine tag type from techTypes array
+const getTagType = (techTypes: string[]): { 
+  isNdef: boolean, 
+  isFormattable: boolean,
+  isMifareClassic: boolean,
+  isMifareUltralight: boolean
+} => {
+  const result = {
+    isNdef: false,
+    isFormattable: false,
+    isMifareClassic: false,
+    isMifareUltralight: false
+  };
+  
+  for (const tech of techTypes) {
+    if (tech.includes('Ndef') && !tech.includes('Formatable')) {
+      result.isNdef = true;
+    }
+    if (tech.includes('NdefFormatable')) {
+      result.isFormattable = true;
+    }
+    if (tech.includes('MifareClassic')) {
+      result.isMifareClassic = true;
+    }
+    if (tech.includes('MifareUltralight')) {
+      result.isMifareUltralight = true;
+    }
+  }
+  
+  return result;
+};
+
+// Helper to check if text contains non-Latin characters
+const containsNonLatinChars = (text: string): boolean => {
+  const nonLatinPattern = /[^\x00-\x7F]/;
+  return nonLatinPattern.test(text);
+};
+
+// Helper to simplify text by removing non-Latin characters
+const simplifyText = (text: string): string => {
+  // Replace non-Latin with closest Latin equivalent or remove
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[^\x00-\x7F]/g, ''); // Remove remaining non-ASCII
+};

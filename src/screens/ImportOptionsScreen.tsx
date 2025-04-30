@@ -58,7 +58,7 @@ const ImportOptionsScreen = () => {
         Alert.alert(
           'Success',
           'Business card saved to contacts',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+          [{ text: 'OK' }]
         );
       } else {
         Alert.alert(
@@ -84,7 +84,7 @@ const ImportOptionsScreen = () => {
         Alert.alert(
           'Success',
           'Business card saved to app',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+          [{ text: 'OK' }]
         );
       } else {
         Alert.alert(
@@ -114,13 +114,13 @@ const ImportOptionsScreen = () => {
         Alert.alert(
           'Success',
           'Business card saved to both contacts and app',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+          [{ text: 'OK' }]
         );
       } else {
         Alert.alert(
           'Partial Success',
           'Business card was saved to some locations but not all',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+          [{ text: 'OK' }]
         );
       }
     } catch (error) {

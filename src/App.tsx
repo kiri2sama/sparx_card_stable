@@ -10,6 +10,7 @@ import CardViewScreen from './screens/CardViewScreen';
 import SavedCardsScreen from './screens/SavedCardsScreen';
 import QRReaderScreen from './screens/QRReaderScreen';
 import ImportOptionsScreen from './screens/ImportOptionsScreen';
+import ContactPreviewScreen from './screens/ContactPreviewScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -46,6 +47,11 @@ const HomeStack = () => {
         name="ImportOptions" 
         component={ImportOptionsScreen} 
         options={{ title: 'Import Business Card' }} 
+      />
+      <Stack.Screen 
+        name="ContactPreview" 
+        component={ContactPreviewScreen} 
+        options={{ title: 'Contact Preview' }} 
       />
     </Stack.Navigator>
   );

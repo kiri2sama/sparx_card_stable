@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform, PermissionsAndroid, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BusinessCard } from './HomeScreen';
 import { initNfc, readNfcTag, cleanupNfc } from '../utils/nfcUtils';
 
+// Update the type definition to include all stack screens
 type RootStackParamList = {
   Home: undefined;
   NFCReader: undefined;
-  ImportOptions: { cardData: BusinessCard };
+  NFCWriter: {
+    editMode?: boolean;
+    businessCard?: BusinessCard;
+  };
+  ContactPreview: { 
+    businessCard: BusinessCard 
+  };
 };
 
 type NFCReaderScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'NFCReader'>;
@@ -18,6 +25,7 @@ const NFCReaderScreen = () => {
   const [isReading, setIsReading] = useState(false);
   const [nfcSupported, setNfcSupported] = useState<boolean | null>(null);
   const [cardData, setCardData] = useState<BusinessCard | null>(null);
+  const [showScanningMessage, setShowScanningMessage] = useState(false);
 
   // Request required permissions
   const requestPermissions = async () => {
@@ -76,11 +84,17 @@ const NFCReaderScreen = () => {
 
   const handleNfcRead = async () => {
     setIsReading(true);
+    setShowScanningMessage(true);
+    
     try {
-      const cardData = await readNfcTag();
-      if (cardData) {
-        // Navigate to import options screen
-        navigation.navigate('ImportOptions', { cardData });
+      const businessCard = await readNfcTag();
+      
+      // Hide the scanning message modal
+      setShowScanningMessage(false);
+      
+      if (businessCard) {
+        // Navigate to contact preview screen with the scanned data
+        navigation.navigate('ContactPreview', { businessCard });
       } else {
         Alert.alert(
           'No Data',
@@ -97,6 +111,7 @@ const NFCReaderScreen = () => {
       );
     } finally {
       setIsReading(false);
+      setShowScanningMessage(false);
     }
   };
 
@@ -133,6 +148,7 @@ const NFCReaderScreen = () => {
           <TouchableOpacity style={styles.cancelButton} onPress={() => {
             cleanupNfc();
             setIsReading(false);
+            setShowScanningMessage(false);
           }}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
@@ -147,6 +163,35 @@ const NFCReaderScreen = () => {
           </TouchableOpacity>
         </>
       )}
+
+      {/* Modal for scanning message instead of Alert */}
+      <Modal
+        visible={showScanningMessage}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowScanningMessage(false);
+          cleanupNfc();
+          setIsReading(false);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Ready to Scan</Text>
+            <Text style={styles.modalMessage}>Hold your phone near the NFC tag to read the business card.</Text>
+            <TouchableOpacity 
+              style={styles.modalButton}
+              onPress={() => {
+                setShowScanningMessage(false);
+                cleanupNfc();
+                setIsReading(false);
+              }}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -216,6 +261,43 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 20,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#666',
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: '#0066cc',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
