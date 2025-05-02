@@ -1,8 +1,6 @@
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import { BusinessCard } from '../screens/HomeScreen';
 import { Alert } from 'react-native';
-import * as FileSystem from 'expo-file-system';
-//import * as DocumentPicker from 'expo-document-picker';
 
 // Initialize NFC Manager
 export const initNfc = async (): Promise<boolean> => {
@@ -38,35 +36,6 @@ export const businessCardToPayload = (card: BusinessCard): string => {
     additionalWebsites: card.additionalWebsites || []
   };
   return JSON.stringify(sanitizedCard);
-};
-
-// Save business card as JSON file
-export const saveRecordAsJson = async (card: BusinessCard): Promise<string | null> => {
-  try {
-    const json = businessCardToPayload(card);
-    const fileName = (card.name ? card.name.replace(/\s+/g, '_') : 'contact') + '.json';
-    const fileUri = FileSystem.documentDirectory + fileName;
-    await FileSystem.writeAsStringAsync(fileUri, json, { encoding: FileSystem.EncodingType.UTF8 });
-    return fileUri;
-  } catch (error) {
-    console.error('Failed to save record as JSON:', error);
-    return null;
-  }
-};
-
-// Load business card from JSON file
-export const loadRecordFromJson = async (): Promise<BusinessCard | null> => {
-  try {
-    const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
-    if (!result.canceled && result.assets && result.assets[0]?.uri) {
-      const json = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: FileSystem.EncodingType.UTF8 });
-      return payloadToBusinessCard(json);
-    }
-    return null;
-  } catch (error) {
-    console.error('Failed to load record from JSON:', error);
-    return null;
-  }
 };
 
 // Parse vCard format to BusinessCard
@@ -290,7 +259,14 @@ export const readNfcTag = async (): Promise<BusinessCard | null> => {
         console.log('MIME type:', mimeType);
         
         if (mimeType === 'text/vcard' || mimeType === 'text/x-vcard') {
-          const payload = String.fromCharCode.apply(null, record.payload);
+          // Proper UTF-8 decoding for payload
+          let payload = '';
+          if (typeof TextDecoder !== 'undefined') {
+            payload = new TextDecoder('utf-8').decode(Uint8Array.from(record.payload));
+          } else {
+            // Fallback for React Native environments
+            payload = decodeURIComponent(escape(String.fromCharCode.apply(null, record.payload)));
+          }
           console.log('Decoded vCard text:', payload);
           return payloadToBusinessCard(payload);
         }
@@ -300,16 +276,16 @@ export const readNfcTag = async (): Promise<BusinessCard | null> => {
         // For text records - they start with a status byte followed by language code
         // Skip the language code and status byte to get the actual text
         let payload = "";
-        
-        // Skip first byte (status byte) and the language code length indicated by it
-        // The status byte format: [encoding flag:1 bit][language code length:7 bits]
         const statusByte = record.payload[0];
-        const langLength = statusByte & 0x3F; // 0x3F is binary 00111111 - to get the last 6 bits
-        
-        // Convert the rest to a string, skipping status byte and language code
-        payload = String.fromCharCode.apply(null, record.payload.slice(1 + langLength));
+        const langLength = statusByte & 0x3F;
+        // Proper UTF-8 decoding for text records
+        const textBytes = record.payload.slice(1 + langLength);
+        if (typeof TextDecoder !== 'undefined') {
+          payload = new TextDecoder('utf-8').decode(Uint8Array.from(textBytes));
+        } else {
+          payload = decodeURIComponent(escape(String.fromCharCode.apply(null, textBytes)));
+        }
         console.log('Text payload:', payload);
-        
         // Check if it contains vCard data
         if (payload.includes('BEGIN:VCARD') || 
             payload.includes('VCARD_PART') || 
@@ -333,35 +309,34 @@ export const readNfcTag = async (): Promise<BusinessCard | null> => {
   }
 };
 
-// IMPORTANT: Do NOT modify the businessCardToVCard function below.
-// This function is required for correct display of Arabic contact names in vCard format.
-
+// Convert a BusinessCard object to a vCard string
 const businessCardToVCard = (card: BusinessCard): string => {
   const lines: string[] = [
     'BEGIN:VCARD',
     'VERSION:3.0'
   ];
 
-  // Add name - do NOT encode, just add CHARSET=UTF-8
+  // Add name - write as plain UTF-8 (no encodeURIComponent)
   if (card.name) {
-    lines.push(`FN;CHARSET=UTF-8:${card.name}`);
-    // vCard N field: N;CHARSET=UTF-8:Family;Given
+    lines.push(`FN:${card.name}`);
     const nameParts = card.name.split(' ');
-    if (nameParts.length > 1) {
-      lines.push(`N;CHARSET=UTF-8:${nameParts[1]};${nameParts[0]}`);
-    } else {
-      lines.push(`N;CHARSET=UTF-8:;${card.name}`);
+    if (nameParts.length > 0) {
+      if (nameParts.length > 1) {
+        lines.push(`N:${nameParts[nameParts.length-1]};${nameParts[0]}`);
+      } else {
+        lines.push(`N:;${nameParts[0]}`);
+      }
     }
   }
 
   // Add title
   if (card.title) {
-    lines.push(`TITLE;CHARSET=UTF-8:${card.title}`);
+    lines.push(`TITLE:${encodeURIComponent(card.title)}`);
   }
 
   // Add company
   if (card.company) {
-    lines.push(`ORG;CHARSET=UTF-8:${card.company}`);
+    lines.push(`ORG:${encodeURIComponent(card.company)}`);
   }
 
   // Add primary phone number
@@ -408,7 +383,7 @@ const businessCardToVCard = (card: BusinessCard): string => {
 
   // Add notes
   if (card.notes && card.notes.trim()) {
-    lines.push(`NOTE;CHARSET=UTF-8:${card.notes.trim()}`);
+    lines.push(`NOTE:${encodeURIComponent(card.notes.trim())}`);
   }
 
   lines.push('END:VCARD');
@@ -429,25 +404,34 @@ export const writeNfcTag = async (card: BusinessCard): Promise<boolean> => {
     console.log('Writing vCard:', vcard);
     
     // Check the vCard size
-    const vcardSize = new TextEncoder().encode(vcard).length;
+    const vcardBytes = new TextEncoder().encode(vcard); // Proper UTF-8 encoding
+    const vcardSize = vcardBytes.length;
     console.log('vCard size in bytes:', vcardSize);
     
-    // If the card contains non-Latin characters and is causing issues, 
-    // try creating a simplified version with Latin characters only
-    if (containsNonLatinChars(card.name) && vcardSize > 300) {
-      console.log('Card contains non-Latin characters and might be too large, creating simplified version');
+    // Get tag info to check compatibility and capacity
+    await NfcManager.requestTechnology(NfcTech.Ndef);
+    const tag = await NfcManager.getTag();
+    console.log('Tag info:', tag);
+    const tagTechTypes = tag?.techTypes || [];
+    const tagType = getTagType(tagTechTypes);
+    console.log('Detected tag type:', tagType);
+
+    // Only fallback to simplified vCard if the vCard size exceeds tag.maxSize
+    if (containsNonLatinChars(card.name) && tag && tag.maxSize && vcardSize > tag.maxSize) {
+      console.log('Card contains non-Latin characters and vCard size exceeds tag capacity, creating simplified version');
       // Create a simplified version of the card with Latin-only characters
       const simplifiedCard = { ...card };
       simplifiedCard.name = simplifyText(card.name);
       vcard = businessCardToVCard(simplifiedCard);
       console.log('Using simplified vCard:', vcard);
+      // Re-encode
+      vcardBytes.set(new TextEncoder().encode(vcard));
     }
 
     // First, create the NDEF message - we'll try to use this with different tag types
     const mimeType = 'text/vcard';
     const mimeBytes = Array.from(mimeType).map(char => char.charCodeAt(0));
-    // FIX: Use UTF-8 encoding for vCard data
-    const dataBytes = Array.from(new TextEncoder().encode(vcard));
+    const dataBytes = Array.from(vcardBytes); // Use UTF-8 bytes
     
     const record = Ndef.record(
       Ndef.TNF_MIME_MEDIA,
@@ -463,18 +447,6 @@ export const writeNfcTag = async (card: BusinessCard): Promise<boolean> => {
       return false;
     }
 
-    // Request NFC technology
-    await NfcManager.requestTechnology(NfcTech.Ndef);
-    
-    // Get tag info to check compatibility and capacity
-    const tag = await NfcManager.getTag();
-    console.log('Tag info:', tag);
-    
-    // Track if we're dealing with a special tag type
-    const tagTechTypes = tag?.techTypes || [];
-    const tagType = getTagType(tagTechTypes);
-    console.log('Detected tag type:', tagType);
-    
     // Check size constraints if available
     if (tag && tag.maxSize && vcardSize > tag.maxSize) {
       console.error(`vCard size (${vcardSize} bytes) exceeds tag capacity (${tag.maxSize} bytes)`);

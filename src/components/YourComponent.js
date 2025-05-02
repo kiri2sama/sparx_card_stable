@@ -19,6 +19,8 @@ export default function YourComponent() {
   };
 
   return (
-    // Your component JSX
+    <button onClick={pickDocument}>
+      Pick a document
+    </button>
   );
 }

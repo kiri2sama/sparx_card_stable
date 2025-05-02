@@ -1,3 +1,4 @@
+//src/utils/contactUtils.ts
 import { Platform, PermissionsAndroid, Alert, Linking, Share } from 'react-native';
 import * as Contacts from 'expo-contacts';
 import * as FileSystem from 'expo-file-system';
@@ -121,20 +122,12 @@ export const saveToContacts = async (card: BusinessCard): Promise<boolean> => {
         .trim();
     }
     
-    // Create a new contact
-    const newContact = {
-      givenName: card.name.split(' ')[0] || '',
-      familyName: card.name.split(' ').slice(1).join(' ') || '',
-      company: card.company,
-      jobTitle: card.title,
-      emailAddresses: emailAddresses,
-      phoneNumbers: phoneNumbers,
-      urlAddresses: urlAddresses,
-      note: cleanNotes,
-    };
-    
-    await Contacts.addContact(newContact);
-    return true;
+    // Creating new contacts is not supported by expo-contacts API
+    Alert.alert(
+      'Not Supported',
+      'Saving new contacts is not supported on this platform.'
+    );
+    return false;
   } catch (error) {
     console.error('Error saving to contacts:', error);
     return false;
@@ -323,7 +316,6 @@ export const saveToPhoneContacts = async (card: BusinessCard): Promise<{success:
         data: tempFilePath,
         flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
         type: 'text/x-vcard',
-        uri: FileSystem.documentDirectory + 'contact.vcf',
       }).catch(async (error) => {
         console.log('Intent launcher failed, trying sharing API:', error);
         
@@ -444,7 +436,7 @@ export const openContactsApp = async (): Promise<boolean> => {
       return true;
     } else if (Platform.OS === 'android') {
       // Open Android Contacts app
-      await IntentLauncher.startActivityAsync(IntentLauncher.ActivityAction.VIEW, {
+      await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
         data: 'content://contacts/people',
       });
       return true;

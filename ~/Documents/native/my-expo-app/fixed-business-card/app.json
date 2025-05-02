@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Digital Business Card",
-    "slug": "digital-business-card",
+    "slug": "business-card",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#00bfff"
     },
     "updates": {
       "fallbackToCacheTimeout": 0

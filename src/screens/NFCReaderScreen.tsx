@@ -93,21 +93,26 @@ const NFCReaderScreen = () => {
       setShowScanningMessage(false);
       
       if (businessCard) {
-        // Navigate to contact preview screen with the scanned data
         navigation.navigate('ContactPreview', { businessCard });
       } else {
         Alert.alert(
           'No Data',
-          'No business card data found on the NFC tag.',
-          [{ text: 'OK' }]
+          'No business card data found on the NFC tag. Please make sure the tag contains a valid card and try again.',
+          [
+            { text: 'Try Again', onPress: () => setIsReading(false) },
+            { text: 'Done', onPress: () => navigation.goBack(), style: 'default' }
+          ]
         );
       }
     } catch (error) {
       console.error('Error reading NFC tag:', error);
       Alert.alert(
-        'Error',
-        'Failed to read the NFC tag.',
-        [{ text: 'OK' }]
+        'Read Error',
+        'Failed to read the NFC tag. Please try again.',
+        [
+          { text: 'Try Again', onPress: () => setIsReading(false) },
+          { text: 'Done', onPress: () => navigation.goBack(), style: 'default' }
+        ]
       );
     } finally {
       setIsReading(false);
@@ -302,3 +307,5 @@ const styles = StyleSheet.create({
 });
 
 export default NFCReaderScreen;
+
+

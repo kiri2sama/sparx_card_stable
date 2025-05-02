@@ -21,7 +21,7 @@ const HomeStack = () => {
       <Stack.Screen 
         name="HomeMain" 
         component={HomeScreen} 
-        options={{ title: 'Digital Business Card' }} 
+        options={{ title: 'SparX Card' }} 
       />
       <Stack.Screen 
         name="NFCReader" 
@@ -31,7 +31,7 @@ const HomeStack = () => {
       <Stack.Screen 
         name="QRReader" 
         component={QRReaderScreen} 
-        options={{ title: 'Scan QR Code', headerShown: false }} 
+        options={{ title: 'Scan QR Code', headerShown: true }} 
       />
       <Stack.Screen 
         name="NFCWriter" 
@@ -86,6 +86,8 @@ const App = () => {
               iconName = focused ? 'home' : 'home-outline';
             } else if (route.name === 'Saved') {
               iconName = focused ? 'card' : 'card-outline';
+            } else if (route.name === 'Profile') {
+              iconName = focused ? 'person' : 'person-outline';
             }
 
             return <Ionicons name={iconName as any} size={size} color={color} />;
@@ -93,10 +95,37 @@ const App = () => {
           tabBarActiveTintColor: '#0066cc',
           tabBarInactiveTintColor: 'gray',
           headerShown: false,
+          tabBarStyle: {
+            position: 'absolute',
+            left: 20,
+            right: 20,
+            bottom: 20,
+            borderRadius: 20,
+            height: 70,
+            backgroundColor: '#fff',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 8,
+            borderTopWidth: 0,
+          },
+          tabBarLabelStyle: {
+            fontSize: 14,
+            fontWeight: 'bold',
+            marginBottom: 8,
+          },
+          tabBarItemStyle: {
+            borderRadius: 16,
+            marginHorizontal: 8,
+            marginVertical: 8,
+          },
         })}
+        sceneContainerStyle={{ backgroundColor: 'transparent' }}
       >
         <Tab.Screen name="Home" component={HomeStack} />
         <Tab.Screen name="Saved" component={SavedCardsStack} />
+        <Tab.Screen name="Profile" component={require('./screens/ProfileScreen').default} />
       </Tab.Navigator>
     </NavigationContainer>
   );
