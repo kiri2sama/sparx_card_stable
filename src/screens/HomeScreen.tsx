@@ -1,5 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Image, Animated, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ScrollView, 
+  Alert,
+  Animated,
+  Pressable
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
@@ -7,18 +16,41 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../styles/ThemeProvider';
 import { useTranslation } from 'react-i18next';
 import { BusinessCard } from '../types/businessCard';
-
-const AVATAR_URL = 'https://ui-avatars.com/api/?name=Sparx+Business+Card&background=7F00FF&color=fff&size=128';
+import { getSavedBusinessCards } from '../utils/storageUtils';
+import CardPreview from '../components/CardPreview';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const { theme, isDarkMode, toggleTheme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
   const { t } = useTranslation();
+  const [recentCards, setRecentCards] = useState<BusinessCard[]>([]);
+  const [myCard, setMyCard] = useState<BusinessCard | null>(null);
   const scrollY = React.useRef(new Animated.Value(0)).current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     navigation.setOptions({ headerShown: false });
+    loadRecentCards();
   }, [navigation]);
+
+  const loadRecentCards = async () => {
+    try {
+      const savedCards = await getSavedBusinessCards();
+      // Sort by most recently updated
+      const sortedCards = [...savedCards].sort((a, b) => 
+        (b.updatedAt || 0) - (a.updatedAt || 0)
+      );
+      
+      // Set the first card as "my card" if it exists
+      if (sortedCards.length > 0) {
+        setMyCard(sortedCards[0]);
+      }
+      
+      // Set recent cards (excluding the first one)
+      setRecentCards(sortedCards.slice(0, 5));
+    } catch (error) {
+      console.error('Error loading saved cards:', error);
+    }
+  };
 
   const handleImportContact = async () => {
     const { status } = await Contacts.requestPermissionsAsync();
@@ -79,34 +111,85 @@ const HomeScreen = () => {
   const animateOut = () => Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
 
   return (
-    <LinearGradient
-      colors={isDarkMode 
-        ? [theme.colors.background, theme.colors.backgroundDark] 
-        : [theme.colors.background, theme.colors.primaryLight]
-      }
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.gradient}
-    >
-      <Animated.ScrollView
-        style={{ flex: 1, width: '100%' }}
-        contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <LinearGradient
+        colors={isDarkMode 
+          ? [theme.colors.background, theme.colors.backgroundDark] 
+          : [theme.colors.background, theme.colors.primaryLight + '20']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+            SparX Card
+          </Text>
+        </View>
+      </LinearGradient>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: false }
         )}
         scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
       >
-        <View style={[
-          styles.eliteCard,
-          {
-            backgroundColor: theme.colors.card,
-            shadowColor: theme.colors.primary,
-            borderColor: theme.colors.border,
-          }
-        ]}>
-          <View style={styles.buttonGroup}>
+        {/* My Digital Card Preview */}
+        <View style={[styles.section, { backgroundColor: theme.colors.card }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              My Digital Card
+            </Text>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('NFCWriter' as never)}
+              accessibilityLabel="Edit my digital card"
+              accessibilityRole="button"
+            >
+              <Text style={[styles.sectionAction, { color: theme.colors.primary }]}>
+                {myCard ? 'Edit' : 'Create'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {myCard ? (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('CardView' as never, { cardData: myCard } as never)}
+              accessibilityLabel="View my digital card"
+              accessibilityRole="button"
+            >
+              <CardPreview card={myCard} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.emptyCardContainer, { borderColor: theme.colors.border }]}
+              onPress={() => navigation.navigate('NFCWriter' as never)}
+              accessibilityLabel="Create your digital business card"
+              accessibilityRole="button"
+            >
+              <Ionicons 
+                name="add-circle-outline" 
+                size={48} 
+                color={theme.colors.primary} 
+              />
+              <Text style={[styles.emptyCardText, { color: theme.colors.textSecondary }]}>
+                Create your digital business card
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Quick Actions */}
+        <View style={[styles.section, { backgroundColor: theme.colors.card }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              Quick Actions
+            </Text>
+          </View>
+
+          <View style={styles.quickActionsGrid}>
             {[{
               icon: 'create-outline',
               label: 'Create New Card',
@@ -122,16 +205,16 @@ const HomeScreen = () => {
             }, {
               icon: 'bookmark-outline',
               label: 'Saved Cards',
-              onPress: () => navigation.navigate('SavedCards' as never)
+              onPress: () => navigation.navigate('Cards' as never)
             }].map((btn, idx) => (
               <Pressable
                 key={btn.label}
                 style={({ pressed }) => [
-                  styles.elegantButton,
+                  styles.quickActionButton,
                   {
                     backgroundColor: pressed 
-                      ? theme.colors.primaryDark 
-                      : theme.colors.primary,
+                      ? theme.colors.primaryLight + '30'
+                      : theme.colors.background,
                     borderColor: theme.colors.border,
                   }
                 ]}
@@ -141,99 +224,165 @@ const HomeScreen = () => {
                 accessibilityRole="button"
                 accessibilityLabel={btn.label}
               >
-                <Animated.View style={{ flexDirection: 'row', alignItems: 'center', transform: [{ scale: scaleAnim }] }}>
-                  <Ionicons name={btn.icon as any} size={24} color="#fff" style={{ marginRight: 12 }} />
-                  <Text style={styles.elegantButtonText}>{btn.label}</Text>
+                <Animated.View style={{ 
+                  alignItems: 'center', 
+                  transform: [{ scale: scaleAnim }] 
+                }}>
+                  <View style={[
+                    styles.quickActionIconContainer,
+                    { backgroundColor: theme.colors.primary + '20' }
+                  ]}>
+                    <Ionicons 
+                      name={btn.icon as any} 
+                      size={24} 
+                      color={theme.colors.primary} 
+                    />
+                  </View>
+                  <Text style={[
+                    styles.quickActionText, 
+                    { color: theme.colors.text }
+                  ]}>
+                    {btn.label}
+                  </Text>
                 </Animated.View>
               </Pressable>
             ))}
-            {/* Theme Switch Button */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.elegantButton,
-                {
-                  backgroundColor: pressed 
-                    ? theme.colors.primaryDark 
-                    : theme.colors.primary,
-                  borderColor: theme.colors.border,
-                }
-              ]}
-              onPress={() => {
-                toggleTheme();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={`Switch to ${isDarkMode ? 'Light' : 'Dark'} Theme`}
-            >
-              <Animated.View style={{ flexDirection: 'row', alignItems: 'center', transform: [{ scale: scaleAnim }] }}>
-                <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={24} color="#fff" style={{ marginRight: 12 }} />
-                <Text style={styles.elegantButtonText}>
-                  Switch to {isDarkMode ? 'Light' : 'Dark'} Theme
-                </Text>
-              </Animated.View>
-            </Pressable>
           </View>
         </View>
-        <Text style={[styles.footer, { color: theme.colors.textSecondary }]} accessibilityRole="text">
-          © {new Date().getFullYear()} Sparx Solutions
-        </Text>
-      </Animated.ScrollView>
-    </LinearGradient>
+
+        {/* Recent Activity */}
+        {recentCards.length > 0 && (
+          <View style={[styles.section, { backgroundColor: theme.colors.card }]}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                Recent Activity
+              </Text>
+              <TouchableOpacity 
+                onPress={() => navigation.navigate('Cards' as never)}
+                accessibilityLabel="View all cards"
+                accessibilityRole="button"
+              >
+                <Text style={[styles.sectionAction, { color: theme.colors.primary }]}>
+                  View All
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentCardsContainer}
+            >
+              {recentCards.map((card, index) => (
+                <TouchableOpacity
+                  key={card.id || index}
+                  style={styles.recentCardItem}
+                  onPress={() => navigation.navigate('CardView' as never, { cardData: card } as never)}
+                  accessibilityLabel={`View ${card.name}'s business card`}
+                  accessibilityRole="button"
+                >
+                  <CardPreview card={card} small />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  gradient: {
+  container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
   },
-  eliteCard: {
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: 36,
-    padding: 36,
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,
-    shadowRadius: 32,
-    elevation: 16,
-    marginBottom: 24,
-    borderWidth: 0,
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 20,
   },
-  buttonGroup: {
-    width: '100%',
-    maxWidth: 350,
-  },
-  elegantButton: {
-    flexDirection: 'row',
+  header: {
+    paddingHorizontal: 20,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 100, // Extra padding for bottom tab bar
+  },
+  section: {
     borderRadius: 16,
-    marginBottom: 18,
-    marginTop: 2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 0,
-    minHeight: 54,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'hidden',
   },
-  elegantButtonText: {
-    color: '#fff',
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    letterSpacing: 1,
   },
-  footer: {
-    opacity: 0.5,
-    fontSize: 13,
-    position: 'absolute',
-    bottom: 18,
-    alignSelf: 'center',
-    letterSpacing: 1,
+  sectionAction: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  emptyCardContainer: {
+    height: 180,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    margin: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyCardText: {
+    marginTop: 12,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 8,
+  },
+  quickActionButton: {
+    width: '50%',
+    padding: 8,
+  },
+  quickActionIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  quickActionText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  recentCardsContainer: {
+    padding: 16,
+  },
+  recentCardItem: {
+    marginRight: 16,
+    width: 200,
   },
 });
 

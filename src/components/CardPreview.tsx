@@ -1,457 +1,284 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { BusinessCard } from '../types/businessCard';
 import { useTheme } from '../styles/ThemeProvider';
-import Avatar from './Avatar';
-import Badge from './Badge';
 
-export type CardProfile = {
-  id?: string;
-  name: string;
-  title: string;
-  company: string;
-  email: string;
-  phone: string;
-  website?: string;
-  address?: string;
-  photoUri?: string;
-  logoUri?: string;
-  socialLinks?: {
-    linkedin?: string;
-    twitter?: string;
-    facebook?: string;
-    instagram?: string;
-    github?: string;
-    dribbble?: string;
-  };
-};
+interface CardPreviewProps {
+  card: BusinessCard;
+  small?: boolean;
+}
 
-export type CardTheme = {
-  id: string;
-  name: string;
-  colors: string[];
-  textColor: string;
-  layout: 'horizontal' | 'vertical';
-  accentColor?: string;
-  fontFamily?: string;
-};
-
-type CardPreviewProps = {
-  profile: CardProfile;
-  cardTheme?: CardTheme;
-  scale?: number;
-  onPress?: () => void;
-  isEditable?: boolean;
-  onEdit?: () => void;
-  elevation?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
-  showShadow?: boolean;
-  borderRadius?: number;
-  showBadge?: boolean;
-  badgeText?: string;
-};
-
-const defaultTheme: CardTheme = {
-  id: 'default',
-  name: 'Default',
-  colors: ['#0066cc', '#38ef7d'],
-  textColor: '#ffffff',
-  layout: 'horizontal',
-  accentColor: '#ffffff',
-};
-
-const CardPreview: React.FC<CardPreviewProps> = ({
-  profile,
-  cardTheme = defaultTheme,
-  scale = 1,
-  onPress,
-  isEditable = false,
-  onEdit,
-  elevation = 'lg',
-  showShadow = true,
-  borderRadius = 16,
-  showBadge = false,
-  badgeText,
-}) => {
+const CardPreview: React.FC<CardPreviewProps> = ({ card, small = false }) => {
   const { theme } = useTheme();
-  const scaleAnim = React.useRef(new Animated.Value(1)).current;
-
-  // Get elevation style
-  const getElevationStyle = () => {
-    if (!showShadow) return {};
-    
-    const shadowMap = {
-      none: {},
-      sm: theme.shadows.sm,
-      md: theme.shadows.md,
-      lg: theme.shadows.lg,
-      xl: theme.shadows.xl,
-    };
-    
-    return shadowMap[elevation] || theme.shadows.md;
+  
+  // Default template if none is specified
+  const template = card.template || {
+    id: 'default',
+    colors: {
+      primary: theme.colors.primary,
+      secondary: theme.colors.secondary,
+      background: theme.colors.card,
+      text: theme.colors.text,
+      accent: theme.colors.primary,
+    },
+    fonts: {
+      primary: 'System',
+      secondary: 'System',
+    },
+    layout: 'horizontal',
   };
-
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.97,
-      friction: 7,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
+  
+  // Generate initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 7,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const renderContactInfo = () => (
-    <View style={styles.contactInfo}>
-      <View style={styles.contactRow}>
-        <Ionicons name="mail-outline" size={16} color={cardTheme.textColor} style={styles.icon} />
-        <Text 
-          style={[
-            styles.contactText, 
-            { 
-              color: cardTheme.textColor,
-              fontFamily: cardTheme.fontFamily || theme.typography.fontFamily.sans,
-            }
-          ]}
-          numberOfLines={1}
-          accessibilityLabel={`Email: ${profile.email}`}
-        >
-          {profile.email}
-        </Text>
-      </View>
-      <View style={styles.contactRow}>
-        <Ionicons name="call-outline" size={16} color={cardTheme.textColor} style={styles.icon} />
-        <Text 
-          style={[
-            styles.contactText, 
-            { 
-              color: cardTheme.textColor,
-              fontFamily: cardTheme.fontFamily || theme.typography.fontFamily.sans,
-            }
-          ]}
-          numberOfLines={1}
-          accessibilityLabel={`Phone: ${profile.phone}`}
-        >
-          {profile.phone}
-        </Text>
-      </View>
-      {profile.website && (
-        <View style={styles.contactRow}>
-          <Ionicons name="globe-outline" size={16} color={cardTheme.textColor} style={styles.icon} />
-          <Text 
-            style={[
-              styles.contactText, 
-              { 
-                color: cardTheme.textColor,
-                fontFamily: cardTheme.fontFamily || theme.typography.fontFamily.sans,
-              }
-            ]}
-            numberOfLines={1}
-            accessibilityLabel={`Website: ${profile.website}`}
-          >
-            {profile.website}
-          </Text>
-        </View>
-      )}
-      {profile.address && (
-        <View style={styles.contactRow}>
-          <Ionicons name="location-outline" size={16} color={cardTheme.textColor} style={styles.icon} />
-          <Text 
-            style={[
-              styles.contactText, 
-              { 
-                color: cardTheme.textColor,
-                fontFamily: cardTheme.fontFamily || theme.typography.fontFamily.sans,
-              }
-            ]}
-            numberOfLines={1}
-            accessibilityLabel={`Address: ${profile.address}`}
-          >
-            {profile.address}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-
-  const renderSocialIcons = () => {
-    if (!profile.socialLinks) return null;
-    
-    const socialIcons = [
-      { key: 'linkedin', icon: 'logo-linkedin', url: profile.socialLinks.linkedin },
-      { key: 'twitter', icon: 'logo-twitter', url: profile.socialLinks.twitter },
-      { key: 'facebook', icon: 'logo-facebook', url: profile.socialLinks.facebook },
-      { key: 'instagram', icon: 'logo-instagram', url: profile.socialLinks.instagram },
-      { key: 'github', icon: 'logo-github', url: profile.socialLinks.github },
-      { key: 'dribbble', icon: 'logo-dribbble', url: profile.socialLinks.dribbble },
-    ].filter(item => item.url);
-    
-    if (socialIcons.length === 0) return null;
-    
-    return (
-      <View style={styles.socialIcons}>
-        {socialIcons.map((item) => (
-          <TouchableOpacity 
-            key={item.key}
-            style={[
-              styles.socialIcon,
-              { backgroundColor: `${cardTheme.textColor}20` }
-            ]}
-            accessibilityLabel={`${item.key} profile`}
-            accessibilityRole="button"
-          >
-            <Ionicons name={item.icon as any} size={18} color={cardTheme.textColor} />
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
-
+  
+  // Get gradient colors based on template
+  const gradientColors = [
+    template.colors.primary,
+    template.colors.secondary || template.colors.primary,
+  ];
+  
+  // Determine if the layout is vertical or horizontal
+  const isVertical = template.layout === 'vertical';
+  
   return (
-    <Animated.View 
-      style={[
-        styles.container, 
-        { 
-          transform: [{ scale: scaleAnim }, { scale }],
-          borderRadius: borderRadius,
-          ...getElevationStyle(),
-        }
-      ]}
-    >
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        accessibilityRole="button"
-        accessibilityLabel={`Business card for ${profile.name}`}
-        accessibilityHint="Double tap to view details"
-      >
-        <LinearGradient
-          colors={cardTheme.colors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[
-            styles.card,
-            { borderRadius: borderRadius },
-            cardTheme.layout === 'vertical' ? styles.verticalCard : styles.horizontalCard,
-          ]}
-        >
-          {showBadge && (
-            <View style={styles.badgeContainer}>
-              <Badge 
-                label={badgeText || 'New'} 
-                size="sm" 
-                variant="solid" 
-                backgroundColor={cardTheme.accentColor || '#ffffff'}
-                textColor={cardTheme.colors[0]}
-                rounded
-              />
-            </View>
-          )}
+    <View style={[
+      styles.container,
+      small && styles.smallContainer,
+      { backgroundColor: template.colors.background }
+    ]}>
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[
+          styles.gradient,
+          isVertical ? styles.verticalGradient : styles.horizontalGradient,
+          small && styles.smallGradient
+        ]}
+      />
+      
+      <View style={[
+        styles.content,
+        isVertical ? styles.verticalContent : styles.horizontalContent,
+        small && styles.smallContent
+      ]}>
+        <View style={[
+          styles.avatarContainer,
+          small && styles.smallAvatarContainer,
+          { backgroundColor: template.colors.primary }
+        ]}>
+          <Text style={[
+            styles.avatarText,
+            small && styles.smallAvatarText
+          ]}>
+            {getInitials(card.name)}
+          </Text>
+        </View>
+        
+        <View style={[
+          styles.infoContainer,
+          small && styles.smallInfoContainer
+        ]}>
+          <Text 
+            style={[
+              styles.name,
+              small && styles.smallName,
+              { color: isVertical ? '#fff' : template.colors.text }
+            ]}
+            numberOfLines={1}
+          >
+            {card.name}
+          </Text>
           
-          <View style={styles.cardContent}>
-            <View style={styles.header}>
-              <Avatar 
-                source={profile.photoUri}
-                name={profile.name}
-                size={cardTheme.layout === 'vertical' ? 'lg' : 'md'}
-                borderColor={`${cardTheme.textColor}50`}
-                borderWidth={2}
-                style={styles.avatar}
-              />
+          {card.title ? (
+            <Text 
+              style={[
+                styles.title,
+                small && styles.smallTitle,
+                { color: isVertical ? '#fff' : theme.colors.textSecondary }
+              ]}
+              numberOfLines={1}
+            >
+              {card.title}
+            </Text>
+          ) : null}
+          
+          {card.company && !small ? (
+            <Text 
+              style={[
+                styles.company,
+                { color: isVertical ? '#fff' : theme.colors.primary }
+              ]}
+              numberOfLines={1}
+            >
+              {card.company}
+            </Text>
+          ) : null}
+          
+          {!small && (
+            <View style={styles.contactInfo}>
+              {card.phone && (
+                <View style={styles.contactRow}>
+                  <Ionicons 
+                    name="call-outline" 
+                    size={14} 
+                    color={isVertical ? '#fff' : theme.colors.textSecondary} 
+                    style={styles.contactIcon} 
+                  />
+                  <Text 
+                    style={[
+                      styles.contactText,
+                      { color: isVertical ? '#fff' : theme.colors.textSecondary }
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {card.phone}
+                  </Text>
+                </View>
+              )}
               
-              <View style={styles.headerText}>
-                <Text 
-                  style={[
-                    styles.name, 
-                    { 
-                      color: cardTheme.textColor,
-                      fontFamily: cardTheme.fontFamily || theme.typography.fontFamily.sans,
-                    }
-                  ]}
-                  accessibilityLabel={`Name: ${profile.name}`}
-                >
-                  {profile.name}
-                </Text>
-                <Text 
-                  style={[
-                    styles.title, 
-                    { 
-                      color: cardTheme.textColor,
-                      fontFamily: cardTheme.fontFamily || theme.typography.fontFamily.sans,
-                    }
-                  ]}
-                  accessibilityLabel={`Title: ${profile.title}`}
-                >
-                  {profile.title}
-                </Text>
-                <Text 
-                  style={[
-                    styles.company, 
-                    { 
-                      color: cardTheme.textColor,
-                      fontFamily: cardTheme.fontFamily || theme.typography.fontFamily.sans,
-                    }
-                  ]}
-                  accessibilityLabel={`Company: ${profile.company}`}
-                >
-                  {profile.company}
-                </Text>
-              </View>
-              
-              {profile.logoUri && (
-                <Image 
-                  source={{ uri: profile.logoUri }} 
-                  style={[
-                    styles.logo,
-                    { backgroundColor: `${cardTheme.textColor}20` }
-                  ]}
-                  accessibilityLabel={`${profile.company} logo`}
-                />
+              {card.email && (
+                <View style={styles.contactRow}>
+                  <Ionicons 
+                    name="mail-outline" 
+                    size={14} 
+                    color={isVertical ? '#fff' : theme.colors.textSecondary} 
+                    style={styles.contactIcon} 
+                  />
+                  <Text 
+                    style={[
+                      styles.contactText,
+                      { color: isVertical ? '#fff' : theme.colors.textSecondary }
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {card.email}
+                  </Text>
+                </View>
               )}
             </View>
-            
-            {renderContactInfo()}
-            {renderSocialIcons()}
-          </View>
-        </LinearGradient>
-      </TouchableOpacity>
-      
-      {isEditable && (
-        <TouchableOpacity 
-          style={[
-            styles.editButton,
-            { backgroundColor: theme.colors.primary }
-          ]}
-          onPress={onEdit}
-          accessibilityLabel="Edit business card"
-          accessibilityRole="button"
-        >
-          <Ionicons name="pencil" size={20} color="#fff" />
-        </TouchableOpacity>
-      )}
-    </Animated.View>
+          )}
+        </View>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    height: 180,
+    position: 'relative',
+  },
+  smallContainer: {
+    height: 100,
+  },
+  gradient: {
+    position: 'absolute',
+  },
+  horizontalGradient: {
+    top: 0,
+    left: 0,
+    width: '30%',
+    height: '100%',
+  },
+  verticalGradient: {
+    top: 0,
+    left: 0,
     width: '100%',
-    overflow: 'hidden',
+    height: '100%',
   },
-  card: {
-    overflow: 'hidden',
+  smallGradient: {
+    width: '25%',
   },
-  horizontalCard: {
-    aspectRatio: 1.7 / 1,
-    padding: 24,
-  },
-  verticalCard: {
-    aspectRatio: 0.65 / 1,
-    padding: 24,
-  },
-  cardContent: {
+  content: {
     flex: 1,
-    justifyContent: 'space-between',
-  },
-  header: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+    padding: 16,
   },
-  avatar: {
+  horizontalContent: {
+    flexDirection: 'row',
+  },
+  verticalContent: {
+    flexDirection: 'row',
+  },
+  smallContent: {
+    padding: 12,
+  },
+  avatarContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 16,
   },
-  headerText: {
+  smallAvatarContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  avatarText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  smallAvatarText: {
+    fontSize: 16,
+  },
+  infoContainer: {
     flex: 1,
+    justifyContent: 'center',
+  },
+  smallInfoContainer: {
+    justifyContent: 'center',
   },
   name: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 4,
-    letterSpacing: 0.3,
+  },
+  smallName: {
+    fontSize: 14,
+    marginBottom: 2,
   },
   title: {
     fontSize: 14,
-    marginBottom: 2,
-    opacity: 0.9,
+    marginBottom: 4,
+  },
+  smallTitle: {
+    fontSize: 12,
+    marginBottom: 0,
   },
   company: {
     fontSize: 14,
-    fontWeight: '600',
-    opacity: 0.9,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
+    fontWeight: '500',
+    marginBottom: 8,
   },
   contactInfo: {
-    marginTop: 12,
+    marginTop: 8,
   },
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  icon: {
-    marginRight: 10,
-    opacity: 0.9,
+  contactIcon: {
+    marginRight: 6,
   },
   contactText: {
-    fontSize: 14,
-    flex: 1,
-    opacity: 0.9,
-  },
-  socialIcons: {
-    flexDirection: 'row',
-    marginTop: 16,
-    flexWrap: 'wrap',
-  },
-  socialIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-    marginBottom: 8,
-  },
-  editButton: {
-    position: 'absolute',
-    top: -12,
-    right: -12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    zIndex: 10,
+    fontSize: 12,
   },
 });
 

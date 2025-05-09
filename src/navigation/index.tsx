@@ -1,83 +1,330 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../styles/ThemeProvider';
+
+// Import screens
 import HomeScreen from '../screens/HomeScreen';
 import NFCReaderScreen from '../screens/NFCReaderScreen';
 import NFCWriterScreen from '../screens/NFCWriterScreen';
+import QRReaderScreen from '../screens/QRReaderScreen';
+import CardViewScreen from '../screens/CardViewScreen';
+import ImportOptionsScreen from '../screens/ImportOptionsScreen';
 import ContactPreviewScreen from '../screens/ContactPreviewScreen';
+import TemplateGalleryScreen from '../screens/TemplateGalleryScreen';
 import SavedCardsScreen from '../screens/SavedCardsScreen';
-//import WriteOptionsScreen from '../screens/WriteOptionsScreen';
+import ScanOptionsScreen from '../screens/ScanOptionsScreen';
+import LeadsScreen from '../screens/LeadsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import { Ionicons } from '@expo/vector-icons';
+import SettingsScreen from '../screens/SettingsScreen';
+import ThemeSettingsScreen from '../screens/ThemeSettingsScreen';
+import LanguageSettingsScreen from '../screens/LanguageSettingsScreen';
+import BackupRestoreScreen from '../screens/BackupRestoreScreen';
 
-const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
-function MainStack() {
+// Home Stack
+const HomeStack = () => {
+  const { theme } = useTheme();
+  
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="NFCReader" component={NFCReaderScreen} />
-      <Stack.Screen name="NFCWriter" component={NFCWriterScreen} />
-      <Stack.Screen name="ContactPreview" component={ContactPreviewScreen} />
-      <Stack.Screen name="SavedCards" component={SavedCardsScreen} />
-    {/* <Stack.Screen name="WriteOptions" component={WriteOptionsScreen} /> */}
-    </Stack.Navigator>
-  );
-}
-
-export const setUpNavigation = () => (
-  <NavigationContainer>
-    <Tab.Navigator
+    <Stack.Navigator
       screenOptions={{
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          position: 'absolute',
-          left: 24,
-          right: 24,
-          bottom: 24,
-          elevation: 8,
-          backgroundColor: '#232526',
-          borderRadius: 24,
-          height: 70,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.18,
-          shadowRadius: 16,
-          borderTopWidth: 0,
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+          elevation: 0,
+          shadowOpacity: 0,
         },
-        tabBarActiveTintColor: '#38ef7d',
-        tabBarInactiveTintColor: '#fff',
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
       }}
     >
-      <Tab.Screen
-        name="Main"
-        component={MainStack}
+      <Stack.Screen 
+        name="HomeMain" 
+        component={HomeScreen} 
+        options={{ title: 'SparX Card' }} 
+      />
+      <Stack.Screen 
+        name="NFCReader" 
+        component={NFCReaderScreen} 
+        options={{ title: 'Read NFC Card' }} 
+      />
+      <Stack.Screen 
+        name="QRReader" 
+        component={QRReaderScreen} 
+        options={{ title: 'Scan QR Code' }} 
+      />
+      <Stack.Screen 
+        name="NFCWriter" 
+        component={NFCWriterScreen} 
+        options={{ title: 'Write NFC Card' }} 
+      />
+      <Stack.Screen 
+        name="CardView" 
+        component={CardViewScreen} 
+        options={{ title: 'Business Card Details' }} 
+      />
+      <Stack.Screen 
+        name="ImportOptions" 
+        component={ImportOptionsScreen} 
+        options={{ title: 'Import Business Card' }} 
+      />
+      <Stack.Screen 
+        name="ContactPreview" 
+        component={ContactPreviewScreen} 
+        options={{ title: 'Contact Preview' }} 
+      />
+      <Stack.Screen 
+        name="TemplateGallery" 
+        component={TemplateGalleryScreen} 
+        options={{ title: 'Card Templates' }} 
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Cards Stack
+const CardsStack = () => {
+  const { theme } = useTheme();
+  
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="SavedCards" 
+        component={SavedCardsScreen} 
+        options={{ title: 'My Cards' }} 
+      />
+      <Stack.Screen 
+        name="CardView" 
+        component={CardViewScreen} 
+        options={{ title: 'Business Card Details' }} 
+      />
+      <Stack.Screen 
+        name="TemplateGallery" 
+        component={TemplateGalleryScreen} 
+        options={{ title: 'Card Templates' }} 
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Scan Stack (Central Tab)
+const ScanStack = () => {
+  const { theme } = useTheme();
+  
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="ScanOptions" 
+        component={ScanOptionsScreen} 
+        options={{ title: 'Scan' }} 
+      />
+      <Stack.Screen 
+        name="NFCReader" 
+        component={NFCReaderScreen} 
+        options={{ title: 'Read NFC Card' }} 
+      />
+      <Stack.Screen 
+        name="QRReader" 
+        component={QRReaderScreen} 
+        options={{ title: 'Scan QR Code' }} 
+      />
+      <Stack.Screen 
+        name="CardView" 
+        component={CardViewScreen} 
+        options={{ title: 'Business Card Details' }} 
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Leads Stack
+const LeadsStack = () => {
+  const { theme } = useTheme();
+  
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="LeadsList" 
+        component={LeadsScreen} 
+        options={{ title: 'Leads' }} 
+      />
+      <Stack.Screen 
+        name="CardView" 
+        component={CardViewScreen} 
+        options={{ title: 'Contact Details' }} 
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Profile Stack
+const ProfileStack = () => {
+  const { theme } = useTheme();
+  
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="ProfileMain" 
+        component={ProfileScreen} 
+        options={{ title: 'Profile' }} 
+      />
+      <Stack.Screen 
+        name="Settings" 
+        component={SettingsScreen} 
+        options={{ title: 'Settings' }} 
+      />
+      <Stack.Screen 
+        name="ThemeSettings" 
+        component={ThemeSettingsScreen} 
+        options={{ title: 'Theme' }} 
+      />
+      <Stack.Screen 
+        name="LanguageSettings" 
+        component={LanguageSettingsScreen} 
+        options={{ title: 'Language' }} 
+      />
+      <Stack.Screen 
+        name="BackupRestore" 
+        component={BackupRestoreScreen} 
+        options={{ title: 'Backup & Restore' }} 
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Main Tab Navigator
+const MainTabs = () => {
+  const { theme } = useTheme();
+  
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Cards') {
+            iconName = focused ? 'card' : 'card-outline';
+          } else if (route.name === 'Scan') {
+            iconName = focused ? 'scan-circle' : 'scan-circle-outline';
+          } else if (route.name === 'Leads') {
+            iconName = focused ? 'people' : 'people-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName as any} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textSecondary,
+        headerShown: false,
+        tabBarStyle: {
+          position: 'absolute',
+          left: 20,
+          right: 20,
+          bottom: 20,
+          borderRadius: 20,
+          height: 70,
+          backgroundColor: theme.colors.card,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 8,
+          borderTopWidth: 0,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: 'bold',
+          marginBottom: 8,
+        },
+        tabBarItemStyle: {
+          borderRadius: 16,
+          marginHorizontal: 4,
+          marginVertical: 8,
+        },
+      })}
+      sceneContainerStyle={{ backgroundColor: theme.colors.background }}
+    >
+      <Tab.Screen name="Home" component={HomeStack} />
+      <Tab.Screen name="Cards" component={CardsStack} />
+      <Tab.Screen 
+        name="Scan" 
+        component={ScanStack}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" color={color} size={size} />
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons 
+              name={focused ? 'scan-circle' : 'scan-circle-outline'} 
+              size={32} 
+              color={theme.colors.primary} 
+              style={{
+                backgroundColor: theme.colors.card,
+                borderRadius: 16,
+                padding: 4,
+                marginBottom: -4,
+              }}
+            />
           ),
         }}
       />
-      <Tab.Screen
-        name="Saved"
-        component={SavedCardsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bookmark-outline" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle-outline" color={color} size={size} />
-          ),
-        }}
-      />
+      <Tab.Screen name="Leads" component={LeadsStack} />
+      <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>
-  </NavigationContainer>
-);
+  );
+};
+
+export default MainTabs;
