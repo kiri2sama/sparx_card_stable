@@ -4,7 +4,7 @@ import * as Contacts from 'expo-contacts';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as IntentLauncher from 'expo-intent-launcher';
-import { BusinessCard } from '../screens/HomeScreen';
+import { BusinessCard } from '../types/businessCard';
 import Constants from 'expo-constants';
 
 // Check and request contacts permission
@@ -473,4 +473,4 @@ export const openAppPermissionsSettings = async (): Promise<boolean> => {
     console.error('Error opening app permissions settings:', error);
     return false;
   }
-}; 
+};

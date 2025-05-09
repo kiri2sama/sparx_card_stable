@@ -3,59 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, Image, Animated, Press
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
-import { LinearGradient } from 'expo-linear-gradient'; // Use expo-linear-gradient for Expo
-import switchTheme from 'react-native-theme-switch-animation'; // Add theme switch animation
-
-export type BusinessCard = {
-  name: string;
-  title: string;
-  company: string;
-  phone: string;
-  email: string;
-  website: string;
-  notes: string;
-  additionalPhones?: string[];
-  additionalEmails?: string[];
-  additionalWebsites?: string[];
-};
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../styles/ThemeProvider';
+import { useTranslation } from 'react-i18next';
+import { BusinessCard } from '../types/businessCard';
 
 const AVATAR_URL = 'https://ui-avatars.com/api/?name=Sparx+Business+Card&background=7F00FF&color=fff&size=128';
 
-// --- THEME & DESIGN SYSTEM ---
-const themePalette = {
-  light: {
-    background: '#EEEEEE',
-    card: '#fff',
-    primary: '#3B1E54',
-    secondary: '#9B7EBD',
-    accent: '#D4BEE4',
-    text: '#3B1E54',
-    subtext: '#9B7EBD',
-    border: '#D4BEE4',
-    shadow: '#9B7EBD',
-    button: '#3B1E54',
-    buttonText: '#fff',
-    pressed: '#D4BEE4',
-  },
-  dark: {
-    background: '#3B1E54',
-    card: '#232026',
-    primary: '#EEEEEE',
-    secondary: '#D4BEE4',
-    accent: '#9B7EBD',
-    text: '#EEEEEE',
-    subtext: '#D4BEE4',
-    border: '#9B7EBD',
-    shadow: '#232026',
-    button: '#9B7EBD',
-    buttonText: '#232026',
-    pressed: '#6a4c93',
-  }
-};
-
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
+  const { theme, isDarkMode, toggleTheme } = useTheme();
+  const { t } = useTranslation();
   const scrollY = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -120,14 +78,15 @@ const HomeScreen = () => {
   const animateIn = () => Animated.spring(scaleAnim, { toValue: 0.96, useNativeDriver: true }).start();
   const animateOut = () => Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
 
-  const palette = themePalette[theme];
-
   return (
     <LinearGradient
-      colors={theme === 'light' ? [palette.background, palette.accent] : [palette.background, palette.accent]}
+      colors={isDarkMode 
+        ? [theme.colors.background, theme.colors.backgroundDark] 
+        : [theme.colors.background, theme.colors.primaryLight]
+      }
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.gradient, { backgroundColor: palette.background }]}
+      style={styles.gradient}
     >
       <Animated.ScrollView
         style={{ flex: 1, width: '100%' }}
@@ -142,9 +101,9 @@ const HomeScreen = () => {
         <View style={[
           styles.eliteCard,
           {
-            backgroundColor: palette.card,
-            shadowColor: palette.shadow,
-            borderColor: palette.border,
+            backgroundColor: theme.colors.card,
+            shadowColor: theme.colors.primary,
+            borderColor: theme.colors.border,
           }
         ]}>
           <View style={styles.buttonGroup}>
@@ -170,8 +129,10 @@ const HomeScreen = () => {
                 style={({ pressed }) => [
                   styles.elegantButton,
                   {
-                    backgroundColor: pressed ? palette.pressed : palette.button,
-                    borderColor: palette.border,
+                    backgroundColor: pressed 
+                      ? theme.colors.primaryDark 
+                      : theme.colors.primary,
+                    borderColor: theme.colors.border,
                   }
                 ]}
                 onPressIn={animateIn}
@@ -181,8 +142,8 @@ const HomeScreen = () => {
                 accessibilityLabel={btn.label}
               >
                 <Animated.View style={{ flexDirection: 'row', alignItems: 'center', transform: [{ scale: scaleAnim }] }}>
-                  <Ionicons name={btn.icon as any} size={24} color={palette.buttonText} style={{ marginRight: 12 }} />
-                  <Text style={[styles.elegantButtonText, { color: palette.buttonText }]}>{btn.label}</Text>
+                  <Ionicons name={btn.icon as any} size={24} color="#fff" style={{ marginRight: 12 }} />
+                  <Text style={styles.elegantButtonText}>{btn.label}</Text>
                 </Animated.View>
               </Pressable>
             ))}
@@ -191,32 +152,30 @@ const HomeScreen = () => {
               style={({ pressed }) => [
                 styles.elegantButton,
                 {
-                  backgroundColor: pressed ? palette.pressed : palette.button,
-                  borderColor: palette.border,
+                  backgroundColor: pressed 
+                    ? theme.colors.primaryDark 
+                    : theme.colors.primary,
+                  borderColor: theme.colors.border,
                 }
               ]}
               onPress={() => {
-                switchTheme({
-                  switchThemeFunction: () => {
-                    setTheme(theme === 'light' ? 'dark' : 'light');
-                  },
-                  animationConfig: {
-                    type: 'fade',
-                    duration: 900,
-                  },
-                });
+                toggleTheme();
               }}
               accessibilityRole="button"
-              accessibilityLabel="Switch Theme"
+              accessibilityLabel={`Switch to ${isDarkMode ? 'Light' : 'Dark'} Theme`}
             >
               <Animated.View style={{ flexDirection: 'row', alignItems: 'center', transform: [{ scale: scaleAnim }] }}>
-                <Ionicons name={theme === 'light' ? 'moon' : 'sunny'} size={24} color={palette.buttonText} style={{ marginRight: 12 }} />
-                <Text style={[styles.elegantButtonText, { color: palette.buttonText }]}>Switch to {theme === 'light' ? 'Dark' : 'Light'} Theme</Text>
+                <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={24} color="#fff" style={{ marginRight: 12 }} />
+                <Text style={styles.elegantButtonText}>
+                  Switch to {isDarkMode ? 'Light' : 'Dark'} Theme
+                </Text>
               </Animated.View>
             </Pressable>
           </View>
         </View>
-        <Text style={[styles.footer, { color: palette.subtext }]} accessibilityRole="text">© {new Date().getFullYear()} Sparx Solutions</Text>
+        <Text style={[styles.footer, { color: theme.colors.textSecondary }]} accessibilityRole="text">
+          © {new Date().getFullYear()} Sparx Solutions
+        </Text>
       </Animated.ScrollView>
     </LinearGradient>
   );
@@ -228,97 +187,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#18181b',
   },
   eliteCard: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: 'rgba(245, 50, 50, 0.18)',
     borderRadius: 36,
     padding: 36,
     alignItems: 'center',
-    shadowColor: '#7F00FF',
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.25,
     shadowRadius: 32,
     elevation: 16,
     marginBottom: 24,
-    borderWidth: 0, // Remove border
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 12,
-    borderWidth: 3,
-    borderColor: '#fff',
-    shadowColor: '#E100FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-  },
-  eliteBadgeRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 8,
-  },
-  eliteBadge: {
-    backgroundColor: 'rgba(44,83,100,0.18)',
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-    paddingVertical: 4,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    letterSpacing: 2,
-    borderWidth: 1,
-    borderColor: 'rgb(255, 255, 255)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 4,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  company: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-    letterSpacing: 2,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
-    opacity: 0.85,
-  },
-  title: {
-    fontSize: 38,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-    textAlign: 'center',
-    letterSpacing: 2,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 8,
-    opacity: 0.95,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#fff',
-    marginBottom: 32,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    opacity: 0.85,
-  },
-  accentLine: {
-    width: 80,
-    height: 4,
-    backgroundColor: '#38ef7d', // green accent
-    borderRadius: 2,
-    marginBottom: 32,
-    opacity: 0.45,
+    borderWidth: 0,
   },
   buttonGroup: {
     width: '100%',
@@ -328,20 +209,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(35,37,38,0.85)', // deep charcoal
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 16,
     marginBottom: 18,
     marginTop: 2,
-    shadowColor: '#11998e', // teal shadow
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 12,
     elevation: 4,
-    borderWidth: 1.5,
-    borderColor: 'rgba(56,239,125,0.18)', // green border
-    opacity: 0.98,
+    borderWidth: 0,
     minHeight: 54,
   },
   elegantButtonText: {
@@ -349,16 +226,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 1,
-    textShadowColor: '#11998e',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  buttonPressed: {
-    opacity: 0.7,
-    backgroundColor: 'rgba(127,0,255,0.18)',
   },
   footer: {
-    color: '#fff',
     opacity: 0.5,
     fontSize: 13,
     position: 'absolute',

@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Share } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { BusinessCard } from '../screens/HomeScreen';
+import { BusinessCard } from '../types/businessCard';
 import { businessCardToPayload } from '../utils/nfcUtils';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../styles/ThemeProvider';
 
 interface BusinessCardQRProps {
   businessCard: BusinessCard;
@@ -16,18 +17,28 @@ const BusinessCardQR: React.FC<BusinessCardQRProps> = ({
   size = 200,
   onClose
 }) => {
+  const { theme } = useTheme();
   const qrValue = businessCardToPayload(businessCard);
   
   const handleShare = async () => {
     try {
       const formatCardForSharing = (card: BusinessCard): string => {
-        let result = `${card.name}\n`;
-        if (card.title) result += `${card.title}\n`;
-        if (card.company) result += `${card.company}\n\n`;
-        if (card.phone) result += `Phone: ${card.phone}\n`;
-        if (card.email) result += `Email: ${card.email}\n`;
-        if (card.website) result += `Website: ${card.website}\n`;
-        if (card.notes) result += `\nNotes: ${card.notes}\n`;
+        let result = `${card.name}\\n`;
+        if (card.title) result += `${card.title}\\n`;
+        if (card.company) result += `${card.company}\\n\\n`;
+        if (card.phone) result += `Phone: ${card.phone}\\n`;
+        if (card.email) result += `Email: ${card.email}\\n`;
+        if (card.website) result += `Website: ${card.website}\\n`;
+        
+        // Add social profiles if available
+        if (card.socialProfiles && Object.keys(card.socialProfiles).length > 0) {
+          result += `\\nSocial Profiles:\\n`;
+          Object.entries(card.socialProfiles).forEach(([platform, url]) => {
+            result += `${platform.charAt(0).toUpperCase() + platform.slice(1)}: ${url}\\n`;
+          });
+        }
+        
+        if (card.notes) result += `\\nNotes: ${card.notes}\\n`;
         return result;
       };
 
@@ -43,31 +54,45 @@ const BusinessCardQR: React.FC<BusinessCardQRProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.card }]}>
       {onClose && (
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Ionicons name="close" size={24} color="#666" />
+        <TouchableOpacity 
+          style={styles.closeButton} 
+          onPress={onClose}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
+        >
+          <Ionicons name="close" size={24} color={theme.colors.textSecondary} />
         </TouchableOpacity>
       )}
       
-      <Text style={styles.title}>Business Card QR Code</Text>
-      <Text style={styles.subtitle}>Scan to share your information</Text>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        Business Card QR Code
+      </Text>
+      <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+        Scan to share your information
+      </Text>
       
-      <View style={styles.qrContainer}>
+      <View style={[styles.qrContainer, { borderColor: theme.colors.border }]}>
         <QRCode
           value={qrValue}
           size={size}
-          color="#000"
-          backgroundColor="#fff"
+          color={theme.colors.text}
+          backgroundColor={theme.colors.card}
         />
       </View>
       
-      <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+      <TouchableOpacity 
+        style={[styles.shareButton, { backgroundColor: theme.colors.primary }]}
+        onPress={handleShare}
+        accessibilityLabel="Share card information"
+        accessibilityRole="button"
+      >
         <Ionicons name="share-outline" size={20} color="#fff" style={styles.shareIcon} />
         <Text style={styles.shareText}>Share Card Info</Text>
       </TouchableOpacity>
       
-      <Text style={styles.info}>
+      <Text style={[styles.info, { color: theme.colors.textLight }]}>
         Others can scan this QR code to get your business card information
       </Text>
     </View>
@@ -76,7 +101,6 @@ const BusinessCardQR: React.FC<BusinessCardQRProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
     padding: 20,
     borderRadius: 12,
     alignItems: 'center',
@@ -98,23 +122,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#333',
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 20,
   },
   qrContainer: {
     padding: 15,
-    backgroundColor: '#fff',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#eee',
     marginBottom: 20,
   },
   shareButton: {
-    backgroundColor: '#0066cc',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -133,9 +152,8 @@ const styles = StyleSheet.create({
   },
   info: {
     fontSize: 12,
-    color: '#999',
     textAlign: 'center',
   },
 });
 
-export default BusinessCardQR; 
+export default BusinessCardQR;

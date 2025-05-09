@@ -11,10 +11,11 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { BusinessCard } from './HomeScreen';
+import { BusinessCard } from '../types/businessCard';
 import { saveBusinessCard } from '../utils/storageUtils';
 import { saveToContacts } from '../utils/contactUtils';
 import BusinessCardQR from '../components/BusinessCardQR';
+import { useTheme } from '../styles/ThemeProvider';
 
 type CardViewParams = {
   cardData: BusinessCard;
@@ -23,6 +24,7 @@ type CardViewParams = {
 const CardViewScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { theme } = useTheme();
   const { cardData } = route.params as CardViewParams;
   const [showQRCode, setShowQRCode] = useState(false);
   const [additionalPhones, setAdditionalPhones] = useState<string[]>([]);
@@ -122,27 +124,32 @@ const CardViewScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView}>
-        <View style={styles.card}>
-          <Text style={styles.name}>{cardData.name}</Text>
+        <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
+          <Text style={[styles.name, { color: theme.colors.text }]}>{cardData.name}</Text>
           
           {cardData.title ? (
-            <Text style={styles.title}>{cardData.title}</Text>
+            <Text style={[styles.title, { color: theme.colors.textSecondary }]}>{cardData.title}</Text>
           ) : null}
           
           {cardData.company ? (
-            <Text style={styles.company}>{cardData.company}</Text>
+            <Text style={[styles.company, { color: theme.colors.primary }]}>{cardData.company}</Text>
           ) : null}
           
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
           
           {cardData.phone ? (
-            <TouchableOpacity style={styles.infoRow} onPress={() => handlePhonePress(cardData.phone)}>
-              <Ionicons name="call-outline" size={22} color="#0066cc" style={styles.icon} />
+            <TouchableOpacity 
+              style={styles.infoRow} 
+              onPress={() => handlePhonePress(cardData.phone)}
+              accessibilityLabel={`Call ${cardData.name} at ${cardData.phone}`}
+              accessibilityRole="button"
+            >
+              <Ionicons name="call-outline" size={22} color={theme.colors.primary} style={styles.icon} />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Phone</Text>
-                <Text style={styles.infoValue}>{cardData.phone}</Text>
+                <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>Phone</Text>
+                <Text style={[styles.infoValue, { color: theme.colors.text }]}>{cardData.phone}</Text>
               </View>
             </TouchableOpacity>
           ) : null}
@@ -152,21 +159,28 @@ const CardViewScreen = () => {
               key={`phone-${index}`} 
               style={styles.infoRow} 
               onPress={() => handlePhonePress(phone)}
+              accessibilityLabel={`Call ${cardData.name} at alternate number ${phone}`}
+              accessibilityRole="button"
             >
-              <Ionicons name="call-outline" size={22} color="#0066cc" style={styles.icon} />
+              <Ionicons name="call-outline" size={22} color={theme.colors.primary} style={styles.icon} />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Phone {index + 2}</Text>
-                <Text style={styles.infoValue}>{phone}</Text>
+                <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>Phone {index + 2}</Text>
+                <Text style={[styles.infoValue, { color: theme.colors.text }]}>{phone}</Text>
               </View>
             </TouchableOpacity>
           ))}
           
           {cardData.email ? (
-            <TouchableOpacity style={styles.infoRow} onPress={() => handleEmailPress(cardData.email)}>
-              <Ionicons name="mail-outline" size={22} color="#0066cc" style={styles.icon} />
+            <TouchableOpacity 
+              style={styles.infoRow} 
+              onPress={() => handleEmailPress(cardData.email)}
+              accessibilityLabel={`Email ${cardData.name} at ${cardData.email}`}
+              accessibilityRole="button"
+            >
+              <Ionicons name="mail-outline" size={22} color={theme.colors.primary} style={styles.icon} />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue}>{cardData.email}</Text>
+                <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>Email</Text>
+                <Text style={[styles.infoValue, { color: theme.colors.text }]}>{cardData.email}</Text>
               </View>
             </TouchableOpacity>
           ) : null}
@@ -176,21 +190,28 @@ const CardViewScreen = () => {
               key={`email-${index}`} 
               style={styles.infoRow} 
               onPress={() => handleEmailPress(email)}
+              accessibilityLabel={`Email ${cardData.name} at alternate address ${email}`}
+              accessibilityRole="button"
             >
-              <Ionicons name="mail-outline" size={22} color="#0066cc" style={styles.icon} />
+              <Ionicons name="mail-outline" size={22} color={theme.colors.primary} style={styles.icon} />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Email {index + 2}</Text>
-                <Text style={styles.infoValue}>{email}</Text>
+                <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>Email {index + 2}</Text>
+                <Text style={[styles.infoValue, { color: theme.colors.text }]}>{email}</Text>
               </View>
             </TouchableOpacity>
           ))}
           
           {cardData.website ? (
-            <TouchableOpacity style={styles.infoRow} onPress={() => handleWebsitePress(cardData.website)}>
-              <Ionicons name="globe-outline" size={22} color="#0066cc" style={styles.icon} />
+            <TouchableOpacity 
+              style={styles.infoRow} 
+              onPress={() => handleWebsitePress(cardData.website)}
+              accessibilityLabel={`Visit ${cardData.name}'s website at ${cardData.website}`}
+              accessibilityRole="button"
+            >
+              <Ionicons name="globe-outline" size={22} color={theme.colors.primary} style={styles.icon} />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Website</Text>
-                <Text style={styles.infoValue}>{cardData.website}</Text>
+                <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>Website</Text>
+                <Text style={[styles.infoValue, { color: theme.colors.text }]}>{cardData.website}</Text>
               </View>
             </TouchableOpacity>
           ) : null}
@@ -200,32 +221,70 @@ const CardViewScreen = () => {
               key={`website-${index}`} 
               style={styles.infoRow} 
               onPress={() => handleWebsitePress(website)}
+              accessibilityLabel={`Visit ${cardData.name}'s alternate website at ${website}`}
+              accessibilityRole="button"
             >
-              <Ionicons name="globe-outline" size={22} color="#0066cc" style={styles.icon} />
+              <Ionicons name="globe-outline" size={22} color={theme.colors.primary} style={styles.icon} />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Website {index + 2}</Text>
-                <Text style={styles.infoValue}>{website}</Text>
+                <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>Website {index + 2}</Text>
+                <Text style={[styles.infoValue, { color: theme.colors.text }]}>{website}</Text>
               </View>
             </TouchableOpacity>
           ))}
           
+          {/* Social Media Profiles */}
+          {cardData.socialProfiles && Object.keys(cardData.socialProfiles).length > 0 && (
+            <View style={styles.socialSection}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Social Profiles</Text>
+              {Object.entries(cardData.socialProfiles).map(([platform, url]) => (
+                <TouchableOpacity
+                  key={platform}
+                  style={styles.infoRow}
+                  onPress={() => handleWebsitePress(url)}
+                  accessibilityLabel={`Visit ${cardData.name}'s ${platform} profile`}
+                  accessibilityRole="button"
+                >
+                  <Ionicons 
+                    name={`logo-${platform.toLowerCase()}`} 
+                    size={22} 
+                    color={theme.colors.primary} 
+                    style={styles.icon} 
+                  />
+                  <View style={styles.infoContent}>
+                    <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    </Text>
+                    <Text style={[styles.infoValue, { color: theme.colors.text }]}>{url}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+          
           {notes ? (
             <View style={styles.notesContainer}>
-              <Text style={styles.notesLabel}>Notes</Text>
-              <Text style={styles.notes}>{notes}</Text>
+              <Text style={[styles.notesLabel, { color: theme.colors.text }]}>Notes</Text>
+              <Text style={[styles.notes, { color: theme.colors.textSecondary }]}>{notes}</Text>
             </View>
           ) : null}
         </View>
         
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleSaveCard}>
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]} 
+            onPress={handleSaveCard}
+            accessibilityLabel="Save this business card"
+            accessibilityRole="button"
+          >
             <Ionicons name="bookmark-outline" size={22} color="#fff" />
             <Text style={styles.actionButtonText}>Save Card</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => setShowQRCode(true)}
+            accessibilityLabel="Show QR code for this business card"
+            accessibilityRole="button"
           >
             <Ionicons name="qr-code-outline" size={22} color="#fff" />
             <Text style={styles.actionButtonText}>Show QR</Text>
@@ -233,18 +292,22 @@ const CardViewScreen = () => {
         </View>
         
         <TouchableOpacity 
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
           onPress={handleSaveToContacts}
+          accessibilityLabel="Add this business card to your contacts"
+          accessibilityRole="button"
         >
-          <Ionicons name="person-add-outline" size={22} color="#0066cc" />
-          <Text style={styles.secondaryButtonText}>Add to Contacts</Text>
+          <Ionicons name="person-add-outline" size={22} color={theme.colors.primary} />
+          <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>Add to Contacts</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: theme.colors.backgroundDark }]}
           onPress={() => navigation.goBack()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
-          <Text style={styles.backButtonText}>Back</Text>
+          <Text style={[styles.backButtonText, { color: theme.colors.text }]}>Back</Text>
         </TouchableOpacity>
       </ScrollView>
       
@@ -270,14 +333,12 @@ const CardViewScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollView: {
     flex: 1,
     padding: 20,
   },
   card: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 24,
     marginBottom: 20,
@@ -290,22 +351,18 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 6,
   },
   title: {
     fontSize: 18,
-    color: '#666',
     marginBottom: 4,
   },
   company: {
     fontSize: 18,
-    color: '#0066cc',
     marginBottom: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: '#eee',
     marginVertical: 16,
   },
   infoRow: {
@@ -321,12 +378,19 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 2,
   },
   infoValue: {
     fontSize: 16,
-    color: '#333',
+  },
+  socialSection: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
   },
   notesContainer: {
     marginTop: 8,
@@ -334,12 +398,10 @@ const styles = StyleSheet.create({
   notesLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#555',
     marginBottom: 8,
   },
   notes: {
     fontSize: 16,
-    color: '#666',
     lineHeight: 22,
   },
   actionButtonsContainer: {
@@ -348,7 +410,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   actionButton: {
-    backgroundColor: '#0066cc',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -363,7 +424,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   secondaryButton: {
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -371,23 +432,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#0066cc',
     marginBottom: 16,
   },
   secondaryButtonText: {
-    color: '#0066cc',
     fontWeight: 'bold',
     marginLeft: 8,
   },
   backButton: {
-    backgroundColor: '#f0f0f0',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 30,
   },
   backButtonText: {
-    color: '#333',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -402,4 +459,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CardViewScreen; 
+export default CardViewScreen;

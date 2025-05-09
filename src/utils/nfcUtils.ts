@@ -1,5 +1,5 @@
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
-import { BusinessCard } from '../screens/HomeScreen';
+import { BusinessCard } from '../types/businessCard';
 import { Alert } from 'react-native';
 
 // Initialize NFC Manager
@@ -33,7 +33,8 @@ export const businessCardToPayload = (card: BusinessCard): string => {
     notes: String(card.notes || '').trim(),
     additionalPhones: card.additionalPhones || [],
     additionalEmails: card.additionalEmails || [],
-    additionalWebsites: card.additionalWebsites || []
+    additionalWebsites: card.additionalWebsites || [],
+    socialProfiles: card.socialProfiles || {}
   };
   return JSON.stringify(sanitizedCard);
 };
@@ -208,7 +209,8 @@ export const payloadToBusinessCard = (payload: string): BusinessCard | null => {
         notes: String(parsed.notes || '').trim(),
         additionalPhones: parsed.additionalPhones || [],
         additionalEmails: parsed.additionalEmails || [],
-        additionalWebsites: parsed.additionalWebsites || []
+        additionalWebsites: parsed.additionalWebsites || [],
+        socialProfiles: parsed.socialProfiles || {}
       };
       
       console.log('Sanitized card:', sanitizedCard);
@@ -378,6 +380,13 @@ const businessCardToVCard = (card: BusinessCard): string => {
       if (website.trim()) {
         lines.push(`URL:${website.trim()}`);
       }
+    });
+  }
+
+  // Add social profiles
+  if (card.socialProfiles && Object.keys(card.socialProfiles).length > 0) {
+    Object.entries(card.socialProfiles).forEach(([platform, url]) => {
+      lines.push(`URL;TYPE=${platform.toUpperCase()}:${url}`);
     });
   }
 
