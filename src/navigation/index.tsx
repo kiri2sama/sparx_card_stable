@@ -272,6 +272,7 @@ const MainTabs = () => {
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
         headerShown: false,
+        tabBarShowLabel: false, // Hide the tab bar labels
         tabBarStyle: {
           position: 'absolute',
           left: 20,
@@ -286,11 +287,6 @@ const MainTabs = () => {
           shadowRadius: 8,
           elevation: 8,
           borderTopWidth: 0,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: 'bold',
-          marginBottom: 8,
         },
         tabBarItemStyle: {
           borderRadius: 16,
