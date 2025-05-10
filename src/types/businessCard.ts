@@ -1,4 +1,5 @@
-export type BusinessCard = {
+export interface BusinessCard {
+  id?: string;
   name: string;
   title: string;
   company: string;
@@ -9,33 +10,12 @@ export type BusinessCard = {
   additionalPhones?: string[];
   additionalEmails?: string[];
   additionalWebsites?: string[];
-  socialProfiles?: {
-    linkedin?: string;
-    twitter?: string;
-    instagram?: string;
-    facebook?: string;
-    github?: string;
-    youtube?: string;
-    tiktok?: string;
-    snapchat?: string;
-    pinterest?: string;
-    medium?: string;
-    // Add more as needed
-  };
-  // Unique identifier for the card
-  id?: string;
-  // When the card was created/updated
-  createdAt?: number;
-  updatedAt?: number;
-  // For analytics
-  views?: number;
-  shares?: number;
-  // For template customization
+  socialProfiles?: Record<string, string>;
   template?: {
     id: string;
     colors: {
       primary: string;
-      secondary: string;
+      secondary?: string;
       background: string;
       text: string;
       accent: string;
@@ -44,6 +24,14 @@ export type BusinessCard = {
       primary: string;
       secondary: string;
     };
-    layout: string;
+    layout: 'horizontal' | 'vertical';
   };
-};
+  createdAt?: number;
+  updatedAt?: number;
+  analytics?: {
+    views: number;
+    shares: number;
+    scans: number;
+    lastViewed?: number;
+  };
+}

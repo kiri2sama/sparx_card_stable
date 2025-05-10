@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../styles/ThemeProvider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import screens
 import HomeScreen from '../screens/HomeScreen';
@@ -10,6 +11,7 @@ import NFCReaderScreen from '../screens/NFCReaderScreen';
 import NFCWriterScreen from '../screens/NFCWriterScreen';
 import QRReaderScreen from '../screens/QRReaderScreen';
 import CardViewScreen from '../screens/CardViewScreen';
+import CardEditorScreen from '../screens/CardEditorScreen';
 import ImportOptionsScreen from '../screens/ImportOptionsScreen';
 import ContactPreviewScreen from '../screens/ContactPreviewScreen';
 import TemplateGalleryScreen from '../screens/TemplateGalleryScreen';
@@ -21,6 +23,10 @@ import SettingsScreen from '../screens/SettingsScreen';
 import ThemeSettingsScreen from '../screens/ThemeSettingsScreen';
 import LanguageSettingsScreen from '../screens/LanguageSettingsScreen';
 import BackupRestoreScreen from '../screens/BackupRestoreScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
+import ShareOptionsScreen from '../screens/ShareOptionsScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+import ContactManagementScreen from '../screens/ContactManagementScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -64,6 +70,11 @@ const HomeStack = () => {
         options={{ title: 'Write NFC Card' }} 
       />
       <Stack.Screen 
+        name="CardEditor" 
+        component={CardEditorScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
         name="CardView" 
         component={CardViewScreen} 
         options={{ title: 'Business Card Details' }} 
@@ -81,7 +92,12 @@ const HomeStack = () => {
       <Stack.Screen 
         name="TemplateGallery" 
         component={TemplateGalleryScreen} 
-        options={{ title: 'Card Templates' }} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="ShareOptions" 
+        component={ShareOptionsScreen} 
+        options={{ headerShown: false }} 
       />
     </Stack.Navigator>
   );
@@ -116,9 +132,19 @@ const CardsStack = () => {
         options={{ title: 'Business Card Details' }} 
       />
       <Stack.Screen 
+        name="CardEditor" 
+        component={CardEditorScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
         name="TemplateGallery" 
         component={TemplateGalleryScreen} 
-        options={{ title: 'Card Templates' }} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="ShareOptions" 
+        component={ShareOptionsScreen} 
+        options={{ headerShown: false }} 
       />
     </Stack.Navigator>
   );
@@ -190,9 +216,41 @@ const LeadsStack = () => {
         options={{ title: 'Leads' }} 
       />
       <Stack.Screen 
+        name="ContactManagement" 
+        component={ContactManagementScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
         name="CardView" 
         component={CardViewScreen} 
         options={{ title: 'Contact Details' }} 
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Analytics Stack
+const AnalyticsStack = () => {
+  const { theme } = useTheme();
+  
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="AnalyticsDashboard" 
+        component={AnalyticsScreen} 
+        options={{ headerShown: false }} 
       />
     </Stack.Navigator>
   );
@@ -263,8 +321,8 @@ const MainTabs = () => {
             iconName = focused ? 'scan-circle' : 'scan-circle-outline';
           } else if (route.name === 'Leads') {
             iconName = focused ? 'people' : 'people-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'Analytics') {
+            iconName = focused ? 'analytics' : 'analytics-outline';
           }
 
           return <Ionicons name={iconName as any} size={size} color={color} />;
@@ -322,9 +380,45 @@ const MainTabs = () => {
         }}
       />
       <Tab.Screen name="Leads" component={LeadsStack} />
-      <Tab.Screen name="Profile" component={ProfileStack} />
+      <Tab.Screen name="Analytics" component={AnalyticsStack} />
     </Tab.Navigator>
   );
 };
 
-export default MainTabs;
+// Root Navigator with Onboarding
+const RootNavigator = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, []);
+  
+  const checkOnboardingStatus = async () => {
+    try {
+      const value = await AsyncStorage.getItem('hasCompletedOnboarding');
+      setHasCompletedOnboarding(value === 'true');
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  if (isLoading) {
+    // You could show a splash screen here
+    return null;
+  }
+  
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {!hasCompletedOnboarding ? (
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+      ) : (
+        <Stack.Screen name="Main" component={MainTabs} />
+      )}
+    </Stack.Navigator>
+  );
+};
+
+export default RootNavigator;

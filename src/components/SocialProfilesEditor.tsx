@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { TextInput, Button, IconButton } from 'react-native-paper';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  TextInput,
+  ScrollView,
+  Alert
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../styles/ThemeProvider';
 import { BusinessCard } from '../types/businessCard';
 
 interface SocialProfilesEditorProps {
@@ -10,230 +18,266 @@ interface SocialProfilesEditorProps {
   onCancel: () => void;
 }
 
-// Social media platforms with their icons and placeholder URLs
-const socialPlatforms = [
-  { 
-    id: 'linkedin', 
-    name: 'LinkedIn', 
-    icon: 'logo-linkedin', 
-    placeholder: 'https://linkedin.com/in/username' 
-  },
-  { 
-    id: 'twitter', 
-    name: 'Twitter', 
-    icon: 'logo-twitter', 
-    placeholder: 'https://twitter.com/username' 
-  },
-  { 
-    id: 'instagram', 
-    name: 'Instagram', 
-    icon: 'logo-instagram', 
-    placeholder: 'https://instagram.com/username' 
-  },
-  { 
-    id: 'facebook', 
-    name: 'Facebook', 
-    icon: 'logo-facebook', 
-    placeholder: 'https://facebook.com/username' 
-  },
-  { 
-    id: 'github', 
-    name: 'GitHub', 
-    icon: 'logo-github', 
-    placeholder: 'https://github.com/username' 
-  },
-  { 
-    id: 'youtube', 
-    name: 'YouTube', 
-    icon: 'logo-youtube', 
-    placeholder: 'https://youtube.com/c/channelname' 
-  },
-  { 
-    id: 'tiktok', 
-    name: 'TikTok', 
-    icon: 'logo-tiktok', 
-    placeholder: 'https://tiktok.com/@username' 
-  },
-  { 
-    id: 'snapchat', 
-    name: 'Snapchat', 
-    icon: 'logo-snapchat', 
-    placeholder: 'https://snapchat.com/add/username' 
-  },
-  { 
-    id: 'pinterest', 
-    name: 'Pinterest', 
-    icon: 'logo-pinterest', 
-    placeholder: 'https://pinterest.com/username' 
-  },
-  { 
-    id: 'medium', 
-    name: 'Medium', 
-    icon: 'logo-medium', 
-    placeholder: 'https://medium.com/@username' 
-  }
-];
+interface SocialPlatform {
+  id: string;
+  name: string;
+  icon: string;
+  placeholder: string;
+  color: string;
+}
 
 const SocialProfilesEditor: React.FC<SocialProfilesEditorProps> = ({ 
   businessCard, 
   onSave, 
   onCancel 
 }) => {
-  // Initialize social profiles from the business card or create an empty object
-  const [socialProfiles, setSocialProfiles] = useState<BusinessCard['socialProfiles']>(
+  const { theme } = useTheme();
+  
+  const [profiles, setProfiles] = useState<Record<string, string>>(
     businessCard.socialProfiles || {}
   );
   
-  // Handle updating a specific social profile URL
-  const updateProfile = (platformId: string, url: string) => {
-    setSocialProfiles({
-      ...socialProfiles,
-      [platformId]: url
-    });
-  };
+  const socialPlatforms: SocialPlatform[] = [
+    { 
+      id: 'linkedin', 
+      name: 'LinkedIn', 
+      icon: 'logo-linkedin', 
+      placeholder: 'https://linkedin.com/in/username',
+      color: '#0077B5'
+    },
+    { 
+      id: 'twitter', 
+      name: 'Twitter', 
+      icon: 'logo-twitter', 
+      placeholder: 'https://twitter.com/username',
+      color: '#1DA1F2'
+    },
+    { 
+      id: 'facebook', 
+      name: 'Facebook', 
+      icon: 'logo-facebook', 
+      placeholder: 'https://facebook.com/username',
+      color: '#1877F2'
+    },
+    { 
+      id: 'instagram', 
+      name: 'Instagram', 
+      icon: 'logo-instagram', 
+      placeholder: 'https://instagram.com/username',
+      color: '#E1306C'
+    },
+    { 
+      id: 'github', 
+      name: 'GitHub', 
+      icon: 'logo-github', 
+      placeholder: 'https://github.com/username',
+      color: '#333333'
+    },
+    { 
+      id: 'youtube', 
+      name: 'YouTube', 
+      icon: 'logo-youtube', 
+      placeholder: 'https://youtube.com/c/channelname',
+      color: '#FF0000'
+    },
+    { 
+      id: 'tiktok', 
+      name: 'TikTok', 
+      icon: 'logo-tiktok', 
+      placeholder: 'https://tiktok.com/@username',
+      color: '#000000'
+    },
+    { 
+      id: 'website', 
+      name: 'Website', 
+      icon: 'globe-outline', 
+      placeholder: 'https://yourwebsite.com',
+      color: '#4CAF50'
+    },
+  ];
   
-  // Clear a specific social profile
-  const clearProfile = (platformId: string) => {
-    const updatedProfiles = { ...socialProfiles };
-    delete updatedProfiles[platformId];
-    setSocialProfiles(updatedProfiles);
-  };
-  
-  // Handle saving all social profiles
-  const handleSave = () => {
-    // Filter out empty URLs
-    const filteredProfiles = Object.entries(socialProfiles).reduce((acc, [key, value]) => {
-      if (value && value.trim() !== '') {
-        acc[key] = value.trim();
-      }
-      return acc;
-    }, {} as Record<string, string>);
+  const handleUpdateProfile = (platformId: string, url: string) => {
+    const updatedProfiles = { ...profiles };
     
+    if (url.trim() === '') {
+      // Remove the profile if the URL is empty
+      delete updatedProfiles[platformId];
+    } else {
+      // Add or update the profile
+      updatedProfiles[platformId] = url;
+    }
+    
+    setProfiles(updatedProfiles);
+  };
+  
+  const handleSave = () => {
+    // Validate URLs
+    const invalidUrls: string[] = [];
+    
+    Object.entries(profiles).forEach(([platform, url]) => {
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        invalidUrls.push(platform);
+      }
+    });
+    
+    if (invalidUrls.length > 0) {
+      Alert.alert(
+        'Invalid URLs',
+        `Please enter valid URLs for: ${invalidUrls.join(', ')}`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    // Save the updated profiles
     const updatedCard: BusinessCard = {
       ...businessCard,
-      socialProfiles: Object.keys(filteredProfiles).length > 0 ? filteredProfiles : undefined
+      socialProfiles: profiles
     };
     
     onSave(updatedCard);
   };
-
+  
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Social Media Profiles</Text>
-      <Text style={styles.subtitle}>Add your social media profiles to your business card</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.card }]}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.headerButton} 
+          onPress={onCancel}
+          accessibilityLabel="Cancel"
+          accessibilityRole="button"
+        >
+          <Text style={[styles.headerButtonText, { color: theme.colors.error }]}>
+            Cancel
+          </Text>
+        </TouchableOpacity>
+        
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+          Social Profiles
+        </Text>
+        
+        <TouchableOpacity 
+          style={styles.headerButton} 
+          onPress={handleSave}
+          accessibilityLabel="Save"
+          accessibilityRole="button"
+        >
+          <Text style={[styles.headerButtonText, { color: theme.colors.primary }]}>
+            Save
+          </Text>
+        </TouchableOpacity>
+      </View>
       
-      <View style={styles.profilesContainer}>
-        {socialPlatforms.map(platform => {
-          const profileUrl = socialProfiles?.[platform.id as keyof typeof socialProfiles] || '';
-          
-          return (
-            <View key={platform.id} style={styles.profileRow}>
-              <View style={styles.platformInfo}>
-                <Ionicons name={platform.icon as any} size={24} color="#0066cc" style={styles.platformIcon} />
-                <Text style={styles.platformName}>{platform.name}</Text>
-              </View>
-              
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={profileUrl}
-                  onChangeText={(text) => updateProfile(platform.id, text)}
-                  placeholder={platform.placeholder}
-                  style={styles.input}
-                  dense
-                  right={
-                    profileUrl ? (
-                      <TextInput.Icon 
-                        icon="close-circle" 
-                        onPress={() => clearProfile(platform.id)} 
-                      />
-                    ) : null
-                  }
-                />
-              </View>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <Text style={[styles.description, { color: theme.colors.textSecondary }]}>
+          Add your social media profiles to your business card. Leave fields blank to remove them.
+        </Text>
+        
+        {socialPlatforms.map((platform) => (
+          <View key={platform.id} style={styles.profileInputContainer}>
+            <View style={[styles.platformIconContainer, { backgroundColor: platform.color }]}>
+              <Ionicons name={platform.icon as any} size={24} color="#fff" />
             </View>
-          );
-        })}
-      </View>
-      
-      <View style={styles.buttonContainer}>
-        <Button 
-          mode="outlined" 
-          onPress={onCancel} 
-          style={styles.button}
-        >
-          Cancel
-        </Button>
-        <Button 
-          mode="contained" 
-          onPress={handleSave} 
-          style={styles.button}
-        >
-          Save Profiles
-        </Button>
-      </View>
-    </ScrollView>
+            
+            <View style={styles.inputWrapper}>
+              <Text style={[styles.platformName, { color: theme.colors.text }]}>
+                {platform.name}
+              </Text>
+              
+              <TextInput
+                style={[
+                  styles.input,
+                  { 
+                    color: theme.colors.text,
+                    backgroundColor: theme.colors.background,
+                    borderColor: theme.colors.border
+                  }
+                ]}
+                value={profiles[platform.id] || ''}
+                onChangeText={(text) => handleUpdateProfile(platform.id, text)}
+                placeholder={platform.placeholder}
+                placeholderTextColor={theme.colors.placeholder}
+                autoCapitalize="none"
+                keyboardType="url"
+              />
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  profilesContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
+    width: '90%',
+    maxWidth: 500,
+    maxHeight: '80%',
+    borderRadius: 12,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  profileRow: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  headerButton: {
+    padding: 8,
+  },
+  headerButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  scrollView: {
+    maxHeight: '80%',
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  description: {
+    fontSize: 14,
+    marginBottom: 20,
+  },
+  profileInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  platformInfo: {
-    flexDirection: 'row',
+  platformIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginRight: 16,
   },
-  platformIcon: {
-    marginRight: 8,
+  inputWrapper: {
+    flex: 1,
   },
   platformName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 4,
   },
   input: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 24,
-    marginBottom: 40,
-  },
-  button: {
-    width: '48%',
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 14,
   },
 });
 

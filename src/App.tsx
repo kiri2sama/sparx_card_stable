@@ -5,7 +5,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Navigation
-import MainTabs from './navigation';
+import RootNavigator from './navigation';
 
 // Theme Provider
 import { ThemeProvider, useTheme } from './styles/ThemeProvider';
@@ -40,7 +40,7 @@ const AppContent = () => {
         }
       }}>
         <NavigationContainer>
-          <MainTabs />
+          <RootNavigator />
         </NavigationContainer>
       </PaperProvider>
     </>
