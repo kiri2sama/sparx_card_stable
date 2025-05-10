@@ -257,15 +257,15 @@ const MainTabs = () => {
           let iconName;
 
           if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
+            iconName = focused ? 'planet' : 'planet-outline';
           } else if (route.name === 'Cards') {
-            iconName = focused ? 'card' : 'card-outline';
+            iconName = focused ? 'wallet' : 'wallet-outline';
           } else if (route.name === 'Scan') {
             iconName = focused ? 'scan-circle' : 'scan-circle-outline';
           } else if (route.name === 'Leads') {
-            iconName = focused ? 'people' : 'people-outline';
+            iconName = focused ? 'people-circle' : 'people-circle-outline';
           } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
+            iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
 
           return <Ionicons name={iconName as any} size={size} color={color} />;
@@ -318,7 +318,7 @@ const MainTabs = () => {
               elevation: 6,
             }}>
               <Ionicons 
-                name={focused ? 'scan' : 'scan-outline'} 
+                name={focused ? 'qr-code' : 'qr-code-outline'} 
                 size={24} 
                 color="#FFFFFF"
               />
