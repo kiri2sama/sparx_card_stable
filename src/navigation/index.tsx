@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -287,6 +288,8 @@ const MainTabs = () => {
           shadowRadius: 8,
           elevation: 8,
           borderTopWidth: 0,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
         },
         tabBarItemStyle: {
           borderRadius: 16,
@@ -303,17 +306,23 @@ const MainTabs = () => {
         component={ScanStack}
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <Ionicons 
-              name={focused ? 'scan-circle' : 'scan-circle-outline'} 
-              size={32} 
-              color={theme.colors.primary} 
-              style={{
-                backgroundColor: theme.colors.card,
-                borderRadius: 16,
-                padding: 4,
-                marginBottom: -4,
-              }}
-            />
+            <View style={{
+              backgroundColor: theme.colors.primary,
+              borderRadius: 30,
+              padding: 12,
+              marginBottom: 15,
+              shadowColor: theme.colors.primary,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.5,
+              shadowRadius: 4,
+              elevation: 5,
+            }}>
+              <Ionicons 
+                name={focused ? 'scan' : 'scan-outline'} 
+                size={24} 
+                color="#FFFFFF"
+              />
+            </View>
           ),
         }}
       />
