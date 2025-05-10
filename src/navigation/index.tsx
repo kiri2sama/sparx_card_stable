@@ -309,17 +309,19 @@ const MainTabs = () => {
             <View style={{
               backgroundColor: theme.colors.primary,
               borderRadius: 30,
-              padding: 12,
-              marginBottom: 15,
+              padding: 14,
+              marginBottom: 20,
               shadowColor: theme.colors.primary,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.6,
-              shadowRadius: 5,
-              elevation: 6,
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.7,
+              shadowRadius: 6,
+              elevation: 8,
+              borderWidth: 3,
+              borderColor: '#FFFFFF',
             }}>
               <Ionicons 
-                name={focused ? 'qr-code' : 'qr-code-outline'} 
-                size={24} 
+                name="add-circle"
+                size={26} 
                 color="#FFFFFF"
               />
             </View>
