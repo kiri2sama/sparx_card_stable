@@ -1,234 +1,267 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Animated,
   Dimensions,
-  Image
+  Platform,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../styles/ThemeProvider';
-import { useTranslation } from 'react-i18next';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BusinessCard } from '../types/businessCard';
-
-type TemplateGalleryParams = {
-  businessCard?: BusinessCard;
-  onSelectTemplate?: (templateId: string) => void;
-};
+import CardPreview, { CardProfile, CardTheme } from '../components/CardPreview';
+import TemplateGrid from '../components/TemplateGrid';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.8;
-const CARD_HEIGHT = CARD_WIDTH * 0.6;
 
-const TemplateGalleryScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
+// Mock user profile data
+const mockProfile: CardProfile = {
+  name: 'John Doe',
+  title: 'Senior Developer',
+  company: 'Tech Solutions Inc.',
+  email: 'john.doe@example.com',
+  phone: '+1 (555) 123-4567',
+  website: 'www.johndoe.dev',
+  address: '123 Tech Street, San Francisco, CA',
+  photoUri: 'https://randomuser.me/api/portraits/men/32.jpg',
+  logoUri: 'https://logo.clearbit.com/microsoft.com',
+  socialLinks: {
+    linkedin: 'linkedin.com/in/johndoe',
+    twitter: 'twitter.com/johndoe',
+  },
+};
+
+// Mock template data
+const mockTemplates: CardTheme[] = [
+  {
+    id: 'template1',
+    name: 'Blue Gradient',
+    colors: ['#0066cc', '#4da6ff'],
+    textColor: '#ffffff',
+    layout: 'horizontal',
+  },
+  {
+    id: 'template2',
+    name: 'Green Success',
+    colors: ['#28a745', '#5fd778'],
+    textColor: '#ffffff',
+    layout: 'horizontal',
+  },
+  {
+    id: 'template3',
+    name: 'Sunset',
+    colors: ['#ff7e5f', '#feb47b'],
+    textColor: '#ffffff',
+    layout: 'horizontal',
+  },
+  {
+    id: 'template4',
+    name: 'Dark Mode',
+    colors: ['#232526', '#414345'],
+    textColor: '#ffffff',
+    layout: 'horizontal',
+  },
+  {
+    id: 'template5',
+    name: 'Purple Rain',
+    colors: ['#8e2de2', '#4a00e0'],
+    textColor: '#ffffff',
+    layout: 'horizontal',
+  },
+  {
+    id: 'template6',
+    name: 'Coral Reef',
+    colors: ['#ff5f6d', '#ffc371'],
+    textColor: '#ffffff',
+    layout: 'horizontal',
+  },
+  {
+    id: 'template7',
+    name: 'Vertical Blue',
+    colors: ['#2193b0', '#6dd5ed'],
+    textColor: '#ffffff',
+    layout: 'vertical',
+  },
+  {
+    id: 'template8',
+    name: 'Vertical Green',
+    colors: ['#11998e', '#38ef7d'],
+    textColor: '#ffffff',
+    layout: 'vertical',
+  },
+];
+
+type TemplateGalleryScreenProps = {
+  navigation: any;
+  route: any;
+};
+
+const TemplateGalleryScreen: React.FC<TemplateGalleryScreenProps> = ({ navigation, route }) => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const [selectedTemplate, setSelectedTemplate] = useState<CardTheme>(mockTemplates[0]);
+  const [profile, setProfile] = useState<CardProfile>(mockProfile);
+  const [showPreview, setShowPreview] = useState(true);
   
-  const { businessCard, onSelectTemplate } = route.params as TemplateGalleryParams || {};
+  // Animation values
+  const previewScaleAnim = React.useRef(new Animated.Value(1)).current;
+  const previewOpacityAnim = React.useRef(new Animated.Value(1)).current;
   
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(
-    businessCard?.template?.id || 'elegant-purple'
-  );
+  // Get profile data from route params if available
+  useEffect(() => {
+    if (route.params?.profile) {
+      setProfile(route.params.profile);
+    }
+  }, [route.params]);
   
-  const templates = [
-    {
-      id: 'elegant-purple',
-      name: 'Elegant Purple',
-      colors: ['#6D28D9', '#4C1D95'],
-      layout: 'horizontal',
-    },
-    {
-      id: 'facebook-blue',
-      name: 'Facebook Blue',
-      colors: ['#1877F2', '#166FE5'],
-      layout: 'horizontal',
-    },
-    {
-      id: 'teal-breeze',
-      name: 'Teal Breeze',
-      colors: ['#14B8A6', '#0F766E'],
-      layout: 'horizontal',
-    },
-    {
-      id: 'midnight',
-      name: 'Midnight',
-      colors: ['#0F172A', '#1E293B'],
-      layout: 'horizontal',
-    },
-    {
-      id: 'sunset',
-      name: 'Sunset',
-      colors: ['#F97316', '#C2410C'],
-      layout: 'horizontal',
-    },
-    {
-      id: 'emerald',
-      name: 'Emerald',
-      colors: ['#10B981', '#047857'],
-      layout: 'horizontal',
-    },
-    {
-      id: 'royal-purple',
-      name: 'Royal Purple',
-      colors: ['#8B5CF6', '#6D28D9'],
-      layout: 'horizontal',
-    },
-    {
-      id: 'minimal-light',
-      name: 'Minimal Light',
-      colors: ['#F9FAFB', '#F3F4F6'],
-      textColor: '#111827',
-      layout: 'horizontal',
-    },
-    {
-      id: 'vertical-purple',
-      name: 'Vertical Purple',
-      colors: ['#8B5CF6', '#6D28D9'],
-      layout: 'vertical',
-    },
-    {
-      id: 'vertical-blue',
-      name: 'Vertical Blue',
-      colors: ['#1877F2', '#166FE5'],
-      layout: 'vertical',
-    },
-    {
-      id: 'vertical-teal',
-      name: 'Vertical Teal',
-      colors: ['#14B8A6', '#0F766E'],
-      layout: 'vertical',
-    },
-    {
-      id: 'vertical-dark',
-      name: 'Vertical Dark',
-      colors: ['#1F2937', '#111827'],
-      layout: 'vertical',
-    },
-  ];
-  
-  const handleSelectTemplate = (templateId: string) => {
-    setSelectedTemplate(templateId);
+  // Handle template selection
+  const handleTemplateSelect = (template: CardTheme) => {
+    // Animate card preview change
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(previewScaleAnim, {
+          toValue: 0.9,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(previewOpacityAnim, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(previewScaleAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(previewOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
     
-    if (onSelectTemplate) {
-      onSelectTemplate(templateId);
+    // Update selected template
+    setSelectedTemplate(template);
+  };
+  
+  // Toggle preview visibility
+  const togglePreview = () => {
+    if (showPreview) {
+      Animated.parallel([
+        Animated.timing(previewScaleAnim, {
+          toValue: 0.8,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(previewOpacityAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setShowPreview(false);
+      });
     } else {
-      // If we have a business card, update it with the new template
-      if (businessCard) {
-        const template = templates.find(t => t.id === templateId);
-        if (template) {
-          const updatedCard: BusinessCard = {
-            ...businessCard,
-            template: {
-              id: template.id,
-              colors: {
-                primary: template.colors[0],
-                secondary: template.colors[1],
-                background: template.textColor ? template.colors[0] : '#FFFFFF',
-                text: template.textColor || '#FFFFFF',
-                accent: template.colors[0],
-              },
-              fonts: {
-                primary: 'System',
-                secondary: 'System',
-              },
-              layout: template.layout,
-            },
-          };
-          
-          navigation.navigate('NFCWriter' as never, { 
-            editMode: true, 
-            businessCard: updatedCard 
-          } as never);
-        }
-      }
+      setShowPreview(true);
+      Animated.parallel([
+        Animated.timing(previewScaleAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(previewOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
   };
   
-  const renderTemplateItem = ({ item }: { item: typeof templates[0] }) => {
-    const isSelected = selectedTemplate === item.id;
-    const isVertical = item.layout === 'vertical';
-    const textColor = item.textColor || '#FFFFFF';
-    
-    return (
-      <TouchableOpacity
-        style={[
-          styles.templateItem,
-          isSelected && { borderColor: theme.colors.primary, borderWidth: 3 }
-        ]}
-        onPress={() => handleSelectTemplate(item.id)}
-        accessibilityLabel={`${item.name} template`}
-        accessibilityRole="button"
-        accessibilityState={{ selected: isSelected }}
-      >
-        <View style={styles.templateCard}>
-          <LinearGradient
-            colors={item.colors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[
-              styles.templateGradient,
-              isVertical ? styles.verticalGradient : styles.horizontalGradient
-            ]}
-          />
-          
-          <View style={[
-            styles.templateContent,
-            isVertical && { paddingLeft: CARD_WIDTH * 0.3 }
-          ]}>
-            <View style={[
-              styles.avatarPlaceholder,
-              { backgroundColor: isVertical ? 'rgba(255,255,255,0.2)' : item.colors[0] }
-            ]}>
-              <Text style={[styles.avatarText, { color: textColor }]}>AB</Text>
-            </View>
-            
-            <View style={styles.templateTextContent}>
-              <View style={styles.templateTextLine} />
-              <View style={[styles.templateTextLine, { width: '70%' }]} />
-              <View style={styles.templateTextLine} />
-            </View>
-          </View>
-        </View>
-        
-        <Text style={[styles.templateName, { color: theme.colors.text }]}>
-          {item.name}
-        </Text>
-      </TouchableOpacity>
-    );
+  // Save template selection
+  const saveTemplateSelection = () => {
+    // Here you would typically save the template selection to storage
+    // For now, we'll just navigate back with the selected template
+    navigation.navigate('Profile', {
+      selectedTemplate: selectedTemplate,
+    });
   };
-  
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.card }]}>
-        <TouchableOpacity 
-          style={styles.backButton} 
+      <View style={styles.header}>
+        <TouchableOpacity
           onPress={() => navigation.goBack()}
+          hitSlop={{ top: 20, right: 20, bottom: 20, left: 20 }}
           accessibilityLabel="Go back"
           accessibilityRole="button"
         >
           <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
         
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+        <Text style={[styles.title, { color: theme.colors.text }]}>
           Card Templates
         </Text>
         
-        <View style={styles.headerRight} />
+        <TouchableOpacity
+          onPress={togglePreview}
+          hitSlop={{ top: 20, right: 20, bottom: 20, left: 20 }}
+          accessibilityLabel={showPreview ? "Hide preview" : "Show preview"}
+          accessibilityRole="button"
+        >
+          <Ionicons 
+            name={showPreview ? "eye-off-outline" : "eye-outline"} 
+            size={24} 
+            color={theme.colors.text} 
+          />
+        </TouchableOpacity>
       </View>
       
-      <FlatList
-        data={templates}
-        renderItem={renderTemplateItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.templateList}
-        numColumns={2}
-      />
+      {showPreview && (
+        <Animated.View 
+          style={[
+            styles.previewContainer,
+            { 
+              opacity: previewOpacityAnim,
+              transform: [{ scale: previewScaleAnim }],
+            }
+          ]}
+        >
+          <CardPreview
+            profile={profile}
+            cardTheme={selectedTemplate}
+            scale={0.9}
+          />
+        </Animated.View>
+      )}
+      
+      <View style={styles.templatesContainer}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          Choose a Template
+        </Text>
+        
+        <TemplateGrid
+          templates={mockTemplates}
+          selectedTemplateId={selectedTemplate.id}
+          onSelect={handleTemplateSelect}
+        />
+      </View>
+      
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.saveButton, { backgroundColor: theme.colors.primary }]}
+          onPress={saveTemplateSelection}
+          accessibilityLabel="Apply template"
+          accessibilityRole="button"
+        >
+          <Text style={styles.saveButtonText}>Apply Template</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -236,87 +269,47 @@ const TemplateGalleryScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 50 : 16,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
+    alignItems: 'center',
+    paddingHorizontal: 16,
     paddingBottom: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  previewContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  templatesContainer: {
+    flex: 1,
     paddingHorizontal: 16,
   },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
+  sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-  },
-  headerRight: {
-    width: 40,
-  },
-  templateList: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  templateItem: {
-    width: '50%',
-    padding: 8,
+    fontWeight: '600',
     marginBottom: 16,
   },
-  templateCard: {
-    width: '100%',
-    aspectRatio: 1.6,
+  footer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  saveButton: {
+    paddingVertical: 14,
     borderRadius: 8,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  templateGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  horizontalGradient: {
-    width: '30%',
-  },
-  verticalGradient: {
-    width: '100%',
-  },
-  templateContent: {
-    flex: 1,
-    padding: 12,
-    flexDirection: 'row',
-  },
-  avatarPlaceholder: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
   },
-  avatarText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  templateTextContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  templateTextLine: {
-    height: 6,
-    width: '90%',
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    marginBottom: 6,
-    borderRadius: 3,
-  },
-  templateName: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 8,
-    textAlign: 'center',
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

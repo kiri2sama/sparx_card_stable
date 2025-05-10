@@ -4233,7 +4233,7 @@ expo-contacts@~14.0.5:
   resolved "https://registry.npmjs.org/expo-contacts/-/expo-contacts-14.0.5.tgz"
   integrity sha512-PjuwJmXgQLQ5CnuhFvgP+jRdYFFh23ARP3urln9GXwMm1uqR5Y0ZdQC44PgJsKxGlJYVzPQlDxer03mGsoXN8g==
 
-expo-crypto@^14.1.4:
+expo-crypto@14.1.4:
   version "14.1.4"
   resolved "https://registry.yarnpkg.com/expo-crypto/-/expo-crypto-14.1.4.tgz#4d43a52930f359875b6880775688d6d6c0815c1d"
   integrity sha512-RmKhB3FgvKE5aNFBw4+hifOkyE0tywsDQVksdHA3jFRzcU9toFiJAz6nhPsBKDf5JlzJiIXhbNMtydoWtuuE7w==
@@ -4324,6 +4324,11 @@ expo-manifests@~0.15.8:
   dependencies:
     "@expo/config" "~10.0.11"
     expo-json-utils "~0.14.0"
+
+expo-media-library@~17.0.6:
+  version "17.0.6"
+  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-17.0.6.tgz#355f5f5abf0b5b35cdf009f18567cbba12d8dc82"
+  integrity sha512-LUnfrddmee1xLOkyG2NN1l9xQbtvMX3fbM1brEGHg0SKSndvjod3FQdhTzZEYAariqW2RSxQR8v1IsheIoLQXg==
 
 expo-modules-autolinking@2.0.8:
   version "2.0.8"
@@ -7244,11 +7249,6 @@ react-native-svg@15.8.0:
     css-select "^5.1.0"
     css-tree "^1.1.3"
     warn-once "0.1.1"
-
-react-native-theme-switch-animation@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/react-native-theme-switch-animation/-/react-native-theme-switch-animation-0.8.0.tgz#d9f69d5e41a00697d368897216d318d9430aff0d"
-  integrity sha512-z4f3QGSuUP4tagycls2mekng/7uxAbr75Gn0GGm7JRkrviyao++V2CtJ8VUDx+hSOsgfjEhD9D5JubsGbbHB5w==
 
 react-native@*:
   version "0.73.6"
