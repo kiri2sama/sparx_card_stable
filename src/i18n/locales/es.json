@@ -1,0 +1,79 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "back": "Atrás",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "success": "Éxito",
+    "error": "Error",
+    "loading": "Cargando..."
+  },
+  "home": {
+    "title": "SparX Card",
+    "createNewCard": "Crear Nueva Tarjeta",
+    "scanNfcCard": "Escanear Tarjeta NFC",
+    "importContact": "Importar Contacto",
+    "savedCards": "Tarjetas Guardadas",
+    "switchTheme": "Cambiar a Tema {{theme}}"
+  },
+  "card": {
+    "businessCardDetails": "Detalles de Tarjeta de Visita",
+    "phone": "Teléfono",
+    "email": "Correo",
+    "website": "Sitio Web",
+    "notes": "Notas",
+    "saveCard": "Guardar Tarjeta",
+    "showQR": "Mostrar QR",
+    "addToContacts": "Añadir a Contactos",
+    "cardSaved": "Tarjeta guardada exitosamente",
+    "alreadySaved": "Esta tarjeta ya está en tus tarjetas guardadas",
+    "savedToContacts": "Tarjeta guardada en contactos",
+    "failedToSave": "Error al guardar la tarjeta en contactos",
+    "unexpectedError": "Ocurrió un error inesperado"
+  },
+  "social": {
+    "profiles": "Perfiles Sociales",
+    "addProfiles": "Añade tus perfiles de redes sociales a tu tarjeta",
+    "saveProfiles": "Guardar Perfiles"
+  },
+  "template": {
+    "customize": "Personalizar Plantilla",
+    "layout": "Diseño",
+    "colors": "Colores",
+    "typography": "Tipografía",
+    "primaryColor": "Color Primario",
+    "secondaryColor": "Color Secundario",
+    "backgroundColor": "Color de Fondo",
+    "textColor": "Color de Texto",
+    "accentColor": "Color de Acento",
+    "primaryFont": "Fuente Principal",
+    "secondaryFont": "Fuente Secundaria",
+    "saveChanges": "Guardar Cambios"
+  },
+  "qr": {
+    "businessCardQR": "Código QR de Tarjeta",
+    "scanToShare": "Escanea para compartir tu información",
+    "shareCardInfo": "Compartir Información",
+    "scanInfo": "Otros pueden escanear este código QR para obtener tu información de contacto"
+  },
+  "nfc": {
+    "readNfcCard": "Leer Tarjeta NFC",
+    "writeNfcCard": "Escribir Tarjeta NFC",
+    "tagTooSmall": "Etiqueta NFC Demasiado Pequeña",
+    "tagSizeError": "La información de contacto es demasiado grande ({{size}} bytes) para esta etiqueta NFC ({{maxSize}} bytes). Intenta eliminar información o usa una etiqueta de mayor capacidad."
+  },
+  "analytics": {
+    "title": "Analíticas",
+    "cardEngagement": "Interacción con Tarjetas",
+    "views": "Vistas",
+    "shares": "Compartidos",
+    "scans": "Escaneos",
+    "leads": "Leads",
+    "conversions": "Conversiones",
+    "today": "Hoy",
+    "thisWeek": "Esta Semana",
+    "thisMonth": "Este Mes",
+    "lastMonth": "Mes Pasado"
+  }
+}

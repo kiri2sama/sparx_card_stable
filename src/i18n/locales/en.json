@@ -1,0 +1,79 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "edit": "Edit",
+    "delete": "Delete",
+    "success": "Success",
+    "error": "Error",
+    "loading": "Loading..."
+  },
+  "home": {
+    "title": "SparX Card",
+    "createNewCard": "Create New Card",
+    "scanNfcCard": "Scan NFC Card",
+    "importContact": "Import Contact",
+    "savedCards": "Saved Cards",
+    "switchTheme": "Switch to {{theme}} Theme"
+  },
+  "card": {
+    "businessCardDetails": "Business Card Details",
+    "phone": "Phone",
+    "email": "Email",
+    "website": "Website",
+    "notes": "Notes",
+    "saveCard": "Save Card",
+    "showQR": "Show QR",
+    "addToContacts": "Add to Contacts",
+    "cardSaved": "Business card saved successfully",
+    "alreadySaved": "This business card is already in your saved cards",
+    "savedToContacts": "Business card saved to contacts",
+    "failedToSave": "Failed to save business card to contacts",
+    "unexpectedError": "An unexpected error occurred"
+  },
+  "social": {
+    "profiles": "Social Profiles",
+    "addProfiles": "Add your social media profiles to your business card",
+    "saveProfiles": "Save Profiles"
+  },
+  "template": {
+    "customize": "Customize Template",
+    "layout": "Layout",
+    "colors": "Colors",
+    "typography": "Typography",
+    "primaryColor": "Primary Color",
+    "secondaryColor": "Secondary Color",
+    "backgroundColor": "Background Color",
+    "textColor": "Text Color",
+    "accentColor": "Accent Color",
+    "primaryFont": "Primary Font",
+    "secondaryFont": "Secondary Font",
+    "saveChanges": "Save Changes"
+  },
+  "qr": {
+    "businessCardQR": "Business Card QR Code",
+    "scanToShare": "Scan to share your information",
+    "shareCardInfo": "Share Card Info",
+    "scanInfo": "Others can scan this QR code to get your business card information"
+  },
+  "nfc": {
+    "readNfcCard": "Read NFC Card",
+    "writeNfcCard": "Write NFC Card",
+    "tagTooSmall": "NFC Tag Too Small",
+    "tagSizeError": "The contact information is too large ({{size}} bytes) for this NFC tag ({{maxSize}} bytes). Try removing some information or use a larger capacity tag."
+  },
+  "analytics": {
+    "title": "Analytics",
+    "cardEngagement": "Card Engagement",
+    "views": "Views",
+    "shares": "Shares",
+    "scans": "Scans",
+    "leads": "Leads",
+    "conversions": "Conversions",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month"
+  }
+}
