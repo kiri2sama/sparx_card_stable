@@ -48,12 +48,6 @@ const SettingsScreen = () => {
       accessibilityLabel: 'Accessibility settings'
     },
     {
-      title: 'Help & Support',
-      icon: 'help-circle-outline',
-      onPress: () => {},
-      accessibilityLabel: 'Help and support'
-    },
-    {
       title: 'About',
       icon: 'information-circle-outline',
       onPress: () => {},

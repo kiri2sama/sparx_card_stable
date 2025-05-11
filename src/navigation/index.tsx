@@ -20,8 +20,7 @@ import LeadsScreen from '../screens/LeadsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ThemeSettingsScreen from '../screens/ThemeSettingsScreen';
-import LanguageSettingsScreen from '../screens/LanguageSettingsScreen';
-import BackupRestoreScreen from '../screens/BackupRestoreScreen';
+import LanguageSettingsScreen from '../screens/LanguageSettingsScreen';from een';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();

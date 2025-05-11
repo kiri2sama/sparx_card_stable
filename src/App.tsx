@@ -23,7 +23,7 @@ const AppContent = () => {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
         backgroundColor={theme.colors.background}
       />
-      <PaperProvider theme={{
+      <ppContent / theme={{
         ...theme,
         colors: {
           ...theme.colors,
@@ -53,7 +53,15 @@ const App = () => {
     <SafeAreaProvider>
       <ThemeProvider>
         <AppContent />
-      </ThemeProvider>
+    <MainTabs />
+        </NavigationContainer>
+      </PaperProvider>
+    </>
+  );
+};
+
+// Main App component
+const App = () => {  </ThemeProvider>
     </SafeAreaProvider>
   );
 };
