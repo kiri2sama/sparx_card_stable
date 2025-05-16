@@ -42,6 +42,12 @@ const SettingsScreen = () => {
       accessibilityLabel: 'Backup and restore settings'
     },
     {
+      title: 'Database Configuration',
+      icon: 'server-outline',
+      onPress: () => navigation.navigate('DatabaseConfig' as never),
+      accessibilityLabel: 'Database configuration settings'
+    },
+    {
       title: 'Accessibility',
       icon: 'accessibility-outline',
       onPress: () => {},

@@ -24,6 +24,9 @@ import SettingsScreen from '../screens/SettingsScreen';
 import ThemeSettingsScreen from '../screens/ThemeSettingsScreen';
 import LanguageSettingsScreen from '../screens/LanguageSettingsScreen';
 import BackupRestoreScreen from '../screens/BackupRestoreScreen';
+import LandingScreen from '../screens/LandingScreen';
+import CardManagementScreen from '../screens/CardManagementScreen';
+import DatabaseConfigScreen from '../screens/DatabaseConfigScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -59,6 +62,22 @@ const HomeStack = () => {
         options={{ 
           title: 'SparX Card',
           header: (props) => <GradientHeader title="SparX Card" showBackButton={false} />
+        }} 
+      />
+      <Stack.Screen 
+        name="Landing" 
+        component={LandingScreen} 
+        options={{ 
+          title: 'SparX Card',
+          headerShown: false
+        }} 
+      />
+      <Stack.Screen 
+        name="CardManagement" 
+        component={CardManagementScreen} 
+        options={{ 
+          title: 'Card Management',
+          header: (props) => <GradientHeader title="Card Management" />
         }} 
       />
       <Stack.Screen 
@@ -367,6 +386,14 @@ const ProfileStack = () => {
         options={{ 
           title: 'Backup & Restore',
           header: (props) => <GradientHeader title="Backup & Restore" />
+        }} 
+      />
+      <Stack.Screen 
+        name="DatabaseConfig" 
+        component={DatabaseConfigScreen} 
+        options={{ 
+          title: 'Database Configuration',
+          header: (props) => <GradientHeader title="Database Configuration" />
         }} 
       />
     </Stack.Navigator>
