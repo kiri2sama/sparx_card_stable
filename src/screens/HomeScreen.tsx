@@ -35,20 +35,32 @@ const HomeScreen = () => {
   const loadRecentCards = async () => {
     try {
       const savedCards = await getSavedBusinessCards();
+      
       // Sort by most recently updated
       const sortedCards = [...savedCards].sort((a, b) => 
         (b.updatedAt || 0) - (a.updatedAt || 0)
       );
       
-      // Set the first card as "my card" if it exists
+      // Find a card that might be the user's own card (based on usage or creation date)
+      // For now, we'll use the most recently updated card as "my card"
       if (sortedCards.length > 0) {
         setMyCard(sortedCards[0]);
+        
+        // Set recent cards (excluding the first one)
+        setRecentCards(sortedCards.slice(1, 6));
+      } else {
+        setRecentCards([]);
       }
       
-      // Set recent cards (excluding the first one)
-      setRecentCards(sortedCards.slice(0, 5));
+      // Add a listener to refresh when the screen comes into focus
+      const unsubscribe = navigation.addListener('focus', () => {
+        loadRecentCards();
+      });
+      
+      return unsubscribe;
     } catch (error) {
       console.error('Error loading saved cards:', error);
+      setRecentCards([]);
     }
   };
 
@@ -114,15 +126,18 @@ const HomeScreen = () => {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <LinearGradient
         colors={isDarkMode 
-          ? [theme.colors.background, theme.colors.backgroundDark] 
-          : [theme.colors.background, theme.colors.primaryLight + '20']}
+          ? [theme.colors.primary, theme.colors.backgroundDark] 
+          : [theme.colors.primary, theme.colors.primaryLight]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.headerTitle, { color: '#FFFFFF' }]}>
             SparX Card
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: '#FFFFFF' }]}>
+            Your Digital Business Card Solution
           </Text>
         </View>
       </LinearGradient>
@@ -193,19 +208,33 @@ const HomeScreen = () => {
             {[{
               icon: 'create-outline',
               label: 'Create New Card',
-              onPress: () => navigation.navigate('NFCWriter' as never)
+              onPress: () => navigation.navigate('NFCWriter' as never),
+              color: '#4CAF50', // Green
+              description: 'Create a new digital business card'
+            }, {
+              icon: 'construct-outline',
+              label: 'Advanced NFC Writer',
+              onPress: () => navigation.navigate('AdvancedNFCWriter' as never),
+              color: '#E91E63', // Pink
+              description: 'Write text, URLs, WiFi credentials & more'
             }, {
               icon: 'scan-outline',
               label: 'Scan NFC Card',
-              onPress: () => navigation.navigate('NFCReader' as never)
+              onPress: () => navigation.navigate('NFCReader' as never),
+              color: '#2196F3', // Blue
+              description: 'Read a business card from an NFC tag'
             }, {
               icon: 'person-add-outline',
               label: 'Import Contact',
-              onPress: handleImportContact
+              onPress: handleImportContact,
+              color: '#9C27B0', // Purple
+              description: 'Import from your phone contacts'
             }, {
               icon: 'bookmark-outline',
               label: 'Saved Cards',
-              onPress: () => navigation.navigate('Cards' as never)
+              onPress: () => navigation.navigate('Cards' as never),
+              color: '#FF9800', // Orange
+              description: 'View your saved business cards'
             }].map((btn, idx) => (
               <Pressable
                 key={btn.label}
@@ -214,8 +243,10 @@ const HomeScreen = () => {
                   {
                     backgroundColor: pressed 
                       ? theme.colors.primaryLight + '30'
-                      : theme.colors.background,
+                      : theme.colors.card,
                     borderColor: theme.colors.border,
+                    borderLeftColor: btn.color,
+                    borderLeftWidth: 4,
                   }
                 ]}
                 onPressIn={animateIn}
@@ -226,23 +257,30 @@ const HomeScreen = () => {
               >
                 <Animated.View style={{ 
                   alignItems: 'center', 
-                  transform: [{ scale: scaleAnim }] 
+                  transform: [{ scale: scaleAnim }],
+                  width: '100%'
                 }}>
                   <View style={[
                     styles.quickActionIconContainer,
-                    { backgroundColor: theme.colors.primary + '20' }
+                    { backgroundColor: btn.color + '20' }
                   ]}>
                     <Ionicons 
                       name={btn.icon as any} 
                       size={24} 
-                      color={theme.colors.primary} 
+                      color={btn.color} 
                     />
                   </View>
                   <Text style={[
                     styles.quickActionText, 
-                    { color: theme.colors.text }
+                    { color: theme.colors.text, fontWeight: 'bold' }
                   ]}>
                     {btn.label}
+                  </Text>
+                  <Text style={[
+                    styles.quickActionDescription, 
+                    { color: theme.colors.textSecondary }
+                  ]}>
+                    {btn.description}
                   </Text>
                 </Animated.View>
               </Pressable>
@@ -305,8 +343,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   scrollView: {
     flex: 1,
@@ -317,12 +366,12 @@ const styles = StyleSheet.create({
   },
   section: {
     borderRadius: 16,
-    marginBottom: 16,
+    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
     overflow: 'hidden',
   },
   sectionHeader: {
@@ -330,7 +379,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
@@ -340,7 +389,7 @@ const styles = StyleSheet.create({
   },
   sectionAction: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   emptyCardContainer: {
     height: 180,
@@ -359,30 +408,46 @@ const styles = StyleSheet.create({
   quickActionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 8,
+    padding: 12,
   },
   quickActionButton: {
     width: '50%',
     padding: 8,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
   },
   quickActionIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   quickActionText: {
-    fontSize: 14,
+    fontSize: 15,
     textAlign: 'center',
+    marginBottom: 4,
+  },
+  quickActionDescription: {
+    fontSize: 12,
+    textAlign: 'center',
+    paddingHorizontal: 8,
   },
   recentCardsContainer: {
     padding: 16,
   },
   recentCardItem: {
     marginRight: 16,
-    width: 200,
+    width: 220,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });
 

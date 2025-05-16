@@ -4,11 +4,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../styles/ThemeProvider';
+import GradientHeader from '../components/GradientHeader';
 
 // Import screens
 import HomeScreen from '../screens/HomeScreen';
 import NFCReaderScreen from '../screens/NFCReaderScreen';
 import NFCWriterScreen from '../screens/NFCWriterScreen';
+import AdvancedNFCWriterScreen from '../screens/AdvancedNFCWriterScreen';
 import QRReaderScreen from '../screens/QRReaderScreen';
 import CardViewScreen from '../screens/CardViewScreen';
 import ImportOptionsScreen from '../screens/ImportOptionsScreen';
@@ -34,55 +36,94 @@ const HomeStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.background,
-          elevation: 0,
-          shadowOpacity: 0,
+          backgroundColor: theme.colors.primary,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+          borderBottomWidth: 0,
+          height: 100, // Taller header
         },
-        headerTintColor: theme.colors.text,
+        headerTintColor: '#FFFFFF', // White text for better contrast
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
+          fontSize: 20,
+          letterSpacing: 0.5,
         },
       }}
     >
       <Stack.Screen 
         name="HomeMain" 
         component={HomeScreen} 
-        options={{ title: 'SparX Card' }} 
+        options={{ 
+          title: 'SparX Card',
+          header: (props) => <GradientHeader title="SparX Card" showBackButton={false} />
+        }} 
       />
       <Stack.Screen 
         name="NFCReader" 
         component={NFCReaderScreen} 
-        options={{ title: 'Read NFC Card' }} 
+        options={{ 
+          title: 'Read NFC Card',
+          header: (props) => <GradientHeader title="Read NFC Card" />
+        }} 
       />
       <Stack.Screen 
         name="QRReader" 
         component={QRReaderScreen} 
-        options={{ title: 'Scan QR Code' }} 
+        options={{ 
+          title: 'Scan QR Code',
+          header: (props) => <GradientHeader title="Scan QR Code" />
+        }} 
       />
       <Stack.Screen 
         name="NFCWriter" 
         component={NFCWriterScreen} 
-        options={{ title: 'Write NFC Card' }} 
+        options={{ 
+          title: 'Write NFC Card',
+          header: (props) => <GradientHeader title="Write NFC Card" />
+        }} 
+      />
+      <Stack.Screen 
+        name="AdvancedNFCWriter" 
+        component={AdvancedNFCWriterScreen} 
+        options={{ 
+          title: 'Advanced NFC Writer',
+          header: (props) => <GradientHeader title="Advanced NFC Writer" />
+        }} 
       />
       <Stack.Screen 
         name="CardView" 
         component={CardViewScreen} 
-        options={{ title: 'Business Card Details' }} 
+        options={{ 
+          title: 'Business Card Details',
+          header: (props) => <GradientHeader title="Business Card Details" />
+        }} 
       />
       <Stack.Screen 
         name="ImportOptions" 
         component={ImportOptionsScreen} 
-        options={{ title: 'Import Business Card' }} 
+        options={{ 
+          title: 'Import Business Card',
+          header: (props) => <GradientHeader title="Import Business Card" />
+        }} 
       />
       <Stack.Screen 
         name="ContactPreview" 
         component={ContactPreviewScreen} 
-        options={{ title: 'Contact Preview' }} 
+        options={{ 
+          title: 'Contact Preview',
+          header: (props) => <GradientHeader title="Contact Preview" />
+        }} 
       />
       <Stack.Screen 
         name="TemplateGallery" 
         component={TemplateGalleryScreen} 
-        options={{ title: 'Card Templates' }} 
+        options={{ 
+          title: 'Card Templates',
+          header: (props) => <GradientHeader title="Card Templates" />
+        }} 
       />
     </Stack.Navigator>
   );
@@ -96,30 +137,46 @@ const CardsStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.background,
-          elevation: 0,
-          shadowOpacity: 0,
+          backgroundColor: theme.colors.primary,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+          borderBottomWidth: 0,
+          height: 100, // Taller header
         },
-        headerTintColor: theme.colors.text,
+        headerTintColor: '#FFFFFF', // White text for better contrast
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
+          fontSize: 20,
+          letterSpacing: 0.5,
         },
       }}
     >
       <Stack.Screen 
         name="SavedCards" 
         component={SavedCardsScreen} 
-        options={{ title: 'My Cards' }} 
+        options={{ 
+          title: 'My Cards',
+          header: (props) => <GradientHeader title="My Cards" showBackButton={false} />
+        }} 
       />
       <Stack.Screen 
         name="CardView" 
         component={CardViewScreen} 
-        options={{ title: 'Business Card Details' }} 
+        options={{ 
+          title: 'Business Card Details',
+          header: (props) => <GradientHeader title="Business Card Details" />
+        }} 
       />
       <Stack.Screen 
         name="TemplateGallery" 
         component={TemplateGalleryScreen} 
-        options={{ title: 'Card Templates' }} 
+        options={{ 
+          title: 'Card Templates',
+          header: (props) => <GradientHeader title="Card Templates" />
+        }} 
       />
     </Stack.Navigator>
   );
@@ -133,35 +190,70 @@ const ScanStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.background,
-          elevation: 0,
-          shadowOpacity: 0,
+          backgroundColor: theme.colors.primary,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+          borderBottomWidth: 0,
+          height: 100, // Taller header
         },
-        headerTintColor: theme.colors.text,
+        headerTintColor: '#FFFFFF', // White text for better contrast
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
+          fontSize: 20,
+          letterSpacing: 0.5,
         },
       }}
     >
       <Stack.Screen 
         name="ScanOptions" 
         component={ScanOptionsScreen} 
-        options={{ title: 'Scan' }} 
+        options={{ 
+          title: 'Scan',
+          header: (props) => <GradientHeader title="Scan" showBackButton={false} />
+        }} 
       />
       <Stack.Screen 
         name="NFCReader" 
         component={NFCReaderScreen} 
-        options={{ title: 'Read NFC Card' }} 
+        options={{ 
+          title: 'Read NFC Card',
+          header: (props) => <GradientHeader title="Read NFC Card" />
+        }} 
       />
       <Stack.Screen 
         name="QRReader" 
         component={QRReaderScreen} 
-        options={{ title: 'Scan QR Code' }} 
+        options={{ 
+          title: 'Scan QR Code',
+          header: (props) => <GradientHeader title="Scan QR Code" />
+        }} 
+      />
+      <Stack.Screen 
+        name="NFCWriter" 
+        component={NFCWriterScreen} 
+        options={{ 
+          title: 'Write NFC Card',
+          header: (props) => <GradientHeader title="Write NFC Card" />
+        }} 
+      />
+      <Stack.Screen 
+        name="AdvancedNFCWriter" 
+        component={AdvancedNFCWriterScreen} 
+        options={{ 
+          title: 'Advanced NFC Writer',
+          header: (props) => <GradientHeader title="Advanced NFC Writer" />
+        }} 
       />
       <Stack.Screen 
         name="CardView" 
         component={CardViewScreen} 
-        options={{ title: 'Business Card Details' }} 
+        options={{ 
+          title: 'Business Card Details',
+          header: (props) => <GradientHeader title="Business Card Details" />
+        }} 
       />
     </Stack.Navigator>
   );
@@ -175,25 +267,38 @@ const LeadsStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.background,
-          elevation: 0,
-          shadowOpacity: 0,
+          backgroundColor: theme.colors.primary,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+          borderBottomWidth: 0,
+          height: 100, // Taller header
         },
-        headerTintColor: theme.colors.text,
+        headerTintColor: '#FFFFFF', // White text for better contrast
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
+          fontSize: 20,
+          letterSpacing: 0.5,
         },
       }}
     >
       <Stack.Screen 
         name="LeadsList" 
         component={LeadsScreen} 
-        options={{ title: 'Leads' }} 
+        options={{ 
+          title: 'Leads',
+          header: (props) => <GradientHeader title="Leads" showBackButton={false} />
+        }} 
       />
       <Stack.Screen 
         name="CardView" 
         component={CardViewScreen} 
-        options={{ title: 'Contact Details' }} 
+        options={{ 
+          title: 'Contact Details',
+          header: (props) => <GradientHeader title="Contact Details" />
+        }} 
       />
     </Stack.Navigator>
   );
@@ -207,40 +312,62 @@ const ProfileStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.background,
-          elevation: 0,
-          shadowOpacity: 0,
+          backgroundColor: theme.colors.primary,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+          borderBottomWidth: 0,
+          height: 100, // Taller header
         },
-        headerTintColor: theme.colors.text,
+        headerTintColor: '#FFFFFF', // White text for better contrast
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
+          fontSize: 20,
+          letterSpacing: 0.5,
         },
       }}
     >
       <Stack.Screen 
         name="ProfileMain" 
         component={ProfileScreen} 
-        options={{ title: 'Profile' }} 
+        options={{ 
+          title: 'Profile',
+          header: (props) => <GradientHeader title="Profile" showBackButton={false} />
+        }} 
       />
       <Stack.Screen 
         name="Settings" 
         component={SettingsScreen} 
-        options={{ title: 'Settings' }} 
+        options={{ 
+          title: 'Settings',
+          header: (props) => <GradientHeader title="Settings" />
+        }} 
       />
       <Stack.Screen 
         name="ThemeSettings" 
         component={ThemeSettingsScreen} 
-        options={{ title: 'Theme' }} 
+        options={{ 
+          title: 'Theme',
+          header: (props) => <GradientHeader title="Theme" />
+        }} 
       />
       <Stack.Screen 
         name="LanguageSettings" 
         component={LanguageSettingsScreen} 
-        options={{ title: 'Language' }} 
+        options={{ 
+          title: 'Language',
+          header: (props) => <GradientHeader title="Language" />
+        }} 
       />
       <Stack.Screen 
         name="BackupRestore" 
         component={BackupRestoreScreen} 
-        options={{ title: 'Backup & Restore' }} 
+        options={{ 
+          title: 'Backup & Restore',
+          header: (props) => <GradientHeader title="Backup & Restore" />
+        }} 
       />
     </Stack.Navigator>
   );

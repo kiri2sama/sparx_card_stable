@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../styles/ThemeProvider';
@@ -11,7 +11,12 @@ const ScanOptionsScreen = () => {
   const { t } = useTranslation();
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <ScrollView 
+      style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
+      contentContainerStyle={styles.scrollViewContent}
+    >
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Read</Text>
+      
       <TouchableOpacity 
         style={[styles.optionCard, { backgroundColor: theme.colors.card }]}
         onPress={() => navigation.navigate('NFCReader' as never)}
@@ -21,7 +26,7 @@ const ScanOptionsScreen = () => {
         <View style={styles.iconContainer}>
           <Ionicons 
             name="radio-outline" 
-            size={80} 
+            size={60} 
             color={theme.colors.primary} 
           />
         </View>
@@ -42,7 +47,7 @@ const ScanOptionsScreen = () => {
         <View style={styles.iconContainer}>
           <Ionicons 
             name="qr-code-outline" 
-            size={80} 
+            size={60} 
             color={theme.colors.primary} 
           />
         </View>
@@ -53,20 +58,72 @@ const ScanOptionsScreen = () => {
           Scan a QR code from another business card
         </Text>
       </TouchableOpacity>
-    </View>
+      
+      <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 20 }]}>Write</Text>
+      
+      <TouchableOpacity 
+        style={[styles.optionCard, { backgroundColor: theme.colors.card }]}
+        onPress={() => navigation.navigate('NFCWriter' as never)}
+        accessibilityLabel="Write NFC Card"
+        accessibilityRole="button"
+      >
+        <View style={styles.iconContainer}>
+          <Ionicons 
+            name="create-outline" 
+            size={60} 
+            color={theme.colors.primary} 
+          />
+        </View>
+        <Text style={[styles.optionTitle, { color: theme.colors.text }]}>
+          Write Business Card
+        </Text>
+        <Text style={[styles.optionDescription, { color: theme.colors.textSecondary }]}>
+          Write your business card to an NFC tag
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={[styles.optionCard, { backgroundColor: theme.colors.card }]}
+        onPress={() => navigation.navigate('AdvancedNFCWriter' as never)}
+        accessibilityLabel="Advanced NFC Writer"
+        accessibilityRole="button"
+      >
+        <View style={styles.iconContainer}>
+          <Ionicons 
+            name="construct-outline" 
+            size={60} 
+            color={theme.colors.primary} 
+          />
+        </View>
+        <Text style={[styles.optionTitle, { color: theme.colors.text }]}>
+          Advanced NFC Writer
+        </Text>
+        <Text style={[styles.optionDescription, { color: theme.colors.textSecondary }]}>
+          Write text, URLs, WiFi credentials, and more to NFC tags
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
+  },
+  scrollViewContent: {
     padding: 20,
-    justifyContent: 'center',
+    paddingBottom: 40,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    marginLeft: 8,
   },
   optionCard: {
     borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
+    padding: 20,
+    marginBottom: 16,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -75,19 +132,19 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   iconContainer: {
-    marginBottom: 16,
-    padding: 16,
+    marginBottom: 12,
+    padding: 12,
   },
   optionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 6,
     textAlign: 'center',
   },
   optionDescription: {
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
 });
 
